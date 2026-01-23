@@ -1,0 +1,25 @@
+// Prisma Schema for SmartFinance
+// Personal Finance Management System with AI
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Base model pattern - all entities will extend these fields
+// id, createdAt, updatedAt are common across all models
+
+// User model - core entity for the system
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
