@@ -16,6 +16,8 @@ async function main() {
     data: {
       email: 'demo@smartfinance.com',
       name: 'Demo User',
+      googleId: 'demo-google-id-123456789',
+      avatar: 'https://ui-avatars.com/api/?name=Demo+User',
     },
   });
 
