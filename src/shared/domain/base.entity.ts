@@ -1,12 +1,20 @@
 export abstract class BaseEntity {
   readonly id: string;
   readonly createdAt: Date;
-  readonly updatedAt: Date;
+  protected _updatedAt: Date;
 
   constructor(props: { id: string; createdAt?: Date; updatedAt?: Date }) {
     this.id = props.id;
     this.createdAt = props.createdAt ?? new Date();
-    this.updatedAt = props.updatedAt ?? new Date();
+    this._updatedAt = props.updatedAt ?? new Date();
+  }
+
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+
+  protected updateTimestamp(): void {
+    this._updatedAt = new Date();
   }
 
   equals(entity: BaseEntity): boolean {
