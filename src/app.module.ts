@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
+import { AuthModule } from './features/auth/auth.module';
 import appConfig from './shared/infrastructure/config/app.config';
 import databaseConfig from './shared/infrastructure/config/database.config';
 
@@ -12,7 +13,7 @@ import databaseConfig from './shared/infrastructure/config/database.config';
       envFilePath: ['.env.local', '.env'],
     }),
     PrismaModule,
-    // Feature modules will be added here
+    AuthModule,
   ],
   controllers: [],
   providers: [],
