@@ -10,7 +10,8 @@
       "Bash(npx prisma db push:*)",
       "Bash(npm test:*)",
       "Bash(npm install:*)",
-      "Bash(npm run test:cov:*)"
+      "Bash(npm run test:cov:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

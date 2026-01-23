@@ -10,8 +10,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Base model pattern - all entities will extend these fields
-// id, createdAt, updatedAt are common across all models
+// Enums
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
 
 // User model - core entity for the system
 model User {
@@ -23,5 +26,27 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  // Relations
+  categories Category[]
+
   @@map("users")
+}
+
+// Category model - for classifying transactions
+model Category {
+  id        String       @id @default(uuid())
+  userId    String       @map("user_id")
+  name      String
+  type      CategoryType
+  color     String
+  icon      String
+  isDefault Boolean      @default(false) @map("is_default")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("categories")
 }
