@@ -5,7 +5,9 @@
       "Bash(docker-compose up:*)",
       "Bash(docker exec:*)",
       "Bash(npx prisma generate:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma db push:*)"
     ]
   }
 }
