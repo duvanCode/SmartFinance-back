@@ -33,6 +33,7 @@ async function bootstrap() {
     )
     .addTag('Auth', 'Authentication endpoints - Google OAuth login and user profile')
     .addTag('Categories', 'Category management for income and expense classification')
+    .addTag('Transactions', 'Transaction management - income and expense tracking')
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);

@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { AuthModule } from './features/auth/auth.module';
 import { CategoriesModule } from './features/categories/categories.module';
+import { TransactionsModule } from './features/transactions/transactions.module';
 import appConfig from './shared/infrastructure/config/app.config';
 import databaseConfig from './shared/infrastructure/config/database.config';
 
@@ -16,8 +17,9 @@ import databaseConfig from './shared/infrastructure/config/database.config';
     PrismaModule,
     AuthModule,
     CategoriesModule,
+    TransactionsModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule { }
+export class AppModule {}
