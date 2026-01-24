@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -13,6 +14,33 @@ async function bootstrap() {
 
   // Global prefix
   app.setGlobalPrefix(`${apiPrefix}/${apiVersion}`);
+
+  // Swagger configuration
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('SmartFinance API')
+    .setDescription('Personal finance management system with AI - REST API documentation')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'Enter JWT token',
+        in: 'header',
+      },
+      'JWT-auth',
+    )
+    .addTag('Auth', 'Authentication endpoints - Google OAuth login and user profile')
+    .addTag('Categories', 'Category management for income and expense classification')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  });
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -36,6 +64,7 @@ async function bootstrap() {
   await app.listen(port);
 
   console.log(`🚀 Application is running on: http://localhost:${port}/${apiPrefix}/${apiVersion}`);
+  console.log(`📚 Swagger documentation: http://localhost:${port}/docs`);
 }
 
 bootstrap();
