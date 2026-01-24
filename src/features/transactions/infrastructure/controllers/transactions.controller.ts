@@ -35,6 +35,7 @@ import { GetTransactionByIdUseCase } from '../../application/use-cases/get-trans
 import { UpdateTransactionUseCase } from '../../application/use-cases/update-transaction.use-case';
 import { DeleteTransactionUseCase } from '../../application/use-cases/delete-transaction.use-case';
 import { GetTransactionStatsUseCase } from '../../application/use-cases/get-transaction-stats.use-case';
+import { CategorizeTransactionUseCase } from '../../application/use-cases/categorize-transaction.use-case';
 import { TransactionType } from '../../domain/enums/transaction-type.enum';
 
 interface RequestWithUser extends Request {
@@ -56,7 +57,8 @@ export class TransactionsController {
     private readonly updateTransactionUseCase: UpdateTransactionUseCase,
     private readonly deleteTransactionUseCase: DeleteTransactionUseCase,
     private readonly getTransactionStatsUseCase: GetTransactionStatsUseCase,
-  ) {}
+    private readonly categorizeTransactionUseCase: CategorizeTransactionUseCase,
+  ) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -305,6 +307,20 @@ export class TransactionsController {
     await this.deleteTransactionUseCase.execute({
       id,
       userId: req.user.userId,
+    });
+  }
+
+  @Post('suggest-category')
+  @ApiOperation({ summary: 'Suggest category for a transaction using AI' })
+  @ApiResponse({ status: 200, description: 'Category suggestion' })
+  async suggestCategory(
+    @Request() req: RequestWithUser,
+    @Body() body: { description: string; amount: number },
+  ) {
+    return this.categorizeTransactionUseCase.execute({
+      userId: req.user.userId,
+      description: body.description,
+      amount: body.amount,
     });
   }
 }
