@@ -26,7 +26,7 @@ import { CategoriesModule } from '@features/categories/categories.module';
 // AI Integration
 import { AI_CATEGORIZER } from './domain/interfaces/ai-categorizer.interface';
 import { SPEECH_TO_TEXT } from './domain/interfaces/speech-to-text.interface';
-import { AnthropicCategorizerAdapter } from './infrastructure/ai-adapters/anthropic.adapter';
+import { GroqCategorizerAdapter } from './infrastructure/ai-adapters/groq.adapter';
 import { VoskAdapter } from './infrastructure/ai-adapters/vosk.adapter';
 import { ConfigModule } from '@nestjs/config';
 
@@ -55,10 +55,10 @@ import { CreateTransactionFromAudioUseCase } from './application/use-cases/creat
       useClass: TransactionPrismaRepository,
     },
 
-    // AI Adapter Provider
+    // AI Adapter Provider (Groq - Fast LLM Inference)
     {
       provide: AI_CATEGORIZER,
-      useClass: AnthropicCategorizerAdapter,
+      useClass: GroqCategorizerAdapter,
     },
 
     // Speech to Text Adapter (Vosk - Offline)
