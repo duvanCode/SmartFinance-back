@@ -13,9 +13,25 @@ export class AnthropicCategorizerAdapter implements IAICategorizer {
     private readonly logger = new Logger(AnthropicCategorizerAdapter.name);
 
     constructor(private readonly configService: ConfigService) {
+        const apiKey = this.configService.get<string>('ANTHROPIC_API_KEY');
+        if (!apiKey || apiKey === 'your_anthropic_api_key_here') {
+            this.logger.warn(
+                'ANTHROPIC_API_KEY is not configured or still has the placeholder value. ' +
+                'AI features like text extraction and smart categorization will be unavailable.'
+            );
+        }
         this.client = new Anthropic({
-            apiKey: this.configService.get<string>('ANTHROPIC_API_KEY'),
+            apiKey: apiKey || 'dummy-key', // Avoid throwing during initialization
         });
+    }
+
+    private checkAvailability() {
+        const apiKey = this.configService.get<string>('ANTHROPIC_API_KEY');
+        if (!apiKey || apiKey === 'your_anthropic_api_key_here') {
+            throw new Error(
+                'Claude AI is not configured. Please add a valid ANTHROPIC_API_KEY to your .env file.'
+            );
+        }
     }
 
     async categorize(
@@ -24,6 +40,7 @@ export class AnthropicCategorizerAdapter implements IAICategorizer {
         availableCategories: Category[],
     ): Promise<AICategorizationResult> {
         try {
+            this.checkAvailability();
             if (!availableCategories.length) {
                 throw new Error('No categories available for classification');
             }
@@ -106,6 +123,7 @@ export class AnthropicCategorizerAdapter implements IAICategorizer {
         availableCategories: Category[],
     ): Promise<AICategorizationResult[]> {
         try {
+            this.checkAvailability();
             if (!availableCategories.length) {
                 throw new Error('No categories available for extraction');
             }
