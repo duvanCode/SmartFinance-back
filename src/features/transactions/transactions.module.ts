@@ -25,8 +25,14 @@ import { CategoriesModule } from '@features/categories/categories.module';
 
 // AI Integration
 import { AI_CATEGORIZER } from './domain/interfaces/ai-categorizer.interface';
+import { SPEECH_TO_TEXT } from './domain/interfaces/speech-to-text.interface';
 import { AnthropicCategorizerAdapter } from './infrastructure/ai-adapters/anthropic.adapter';
+import { VoskAdapter } from './infrastructure/ai-adapters/vosk.adapter';
 import { ConfigModule } from '@nestjs/config';
+
+// Logic Use Cases for AI
+import { CreateTransactionFromTextUseCase } from './application/use-cases/create-transaction-from-text.use-case';
+import { CreateTransactionFromAudioUseCase } from './application/use-cases/create-transaction-from-audio.use-case';
 
 @Module({
   imports: [AuthModule, CategoriesModule, ConfigModule],
@@ -40,6 +46,8 @@ import { ConfigModule } from '@nestjs/config';
     DeleteTransactionUseCase,
     GetTransactionStatsUseCase,
     CategorizeTransactionUseCase,
+    CreateTransactionFromTextUseCase,
+    CreateTransactionFromAudioUseCase,
 
     // Repositories
     {
@@ -47,10 +55,16 @@ import { ConfigModule } from '@nestjs/config';
       useClass: TransactionPrismaRepository,
     },
 
-    // AI Adapter Provider (can be switched easily)
+    // AI Adapter Provider
     {
       provide: AI_CATEGORIZER,
       useClass: AnthropicCategorizerAdapter,
+    },
+
+    // Speech to Text Adapter (Vosk - Offline)
+    {
+      provide: SPEECH_TO_TEXT,
+      useClass: VoskAdapter,
     },
   ],
   exports: [TRANSACTION_REPOSITORY],

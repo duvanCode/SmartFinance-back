@@ -4,6 +4,8 @@ export interface AICategorizationResult {
     categoryId: string;
     confidence: number;
     reasoning: string;
+    description?: string;
+    amount?: number;
 }
 
 export interface IAICategorizer {
@@ -12,6 +14,11 @@ export interface IAICategorizer {
         amount: number,
         availableCategories: Category[],
     ): Promise<AICategorizationResult>;
+
+    extractTransactions(
+        text: string,
+        availableCategories: Category[],
+    ): Promise<AICategorizationResult[]>;
 }
 
 export const AI_CATEGORIZER = Symbol('AI_CATEGORIZER');

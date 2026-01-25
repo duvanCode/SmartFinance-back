@@ -9,9 +9,16 @@ import {
   Query,
   Request,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CreateFromTextDto } from '../../application/dto/create-from-text.dto';
+import { CreateTransactionFromTextUseCase } from '../../application/use-cases/create-transaction-from-text.use-case';
+import { CreateTransactionFromAudioUseCase } from '../../application/use-cases/create-transaction-from-audio.use-case';
 import {
   ApiTags,
   ApiOperation,
@@ -23,6 +30,8 @@ import {
   ApiForbiddenResponse,
   ApiQuery,
   ApiParam,
+  ApiConsumes,
+  ApiBody,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@features/auth/infrastructure/guards/jwt-auth.guard';
 import { CreateTransactionDto } from '../../application/dto/create-transaction.dto';
@@ -58,6 +67,8 @@ export class TransactionsController {
     private readonly deleteTransactionUseCase: DeleteTransactionUseCase,
     private readonly getTransactionStatsUseCase: GetTransactionStatsUseCase,
     private readonly categorizeTransactionUseCase: CategorizeTransactionUseCase,
+    private readonly createTransactionFromTextUseCase: CreateTransactionFromTextUseCase,
+    private readonly createTransactionFromAudioUseCase: CreateTransactionFromAudioUseCase,
   ) { }
 
   @Post()
@@ -322,5 +333,77 @@ export class TransactionsController {
       description: body.description,
       amount: body.amount,
     });
+  }
+
+  @Post('from-text')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Extract transactions from natural language text',
+    description: 'Parses a text (e.g., "Lunch 30 USD") and returns a preview of transaction data.',
+  })
+  @ApiResponse({ status: 200, description: 'Extracted transaction data' })
+  async createFromText(
+    @Request() req: RequestWithUser,
+    @Body() dto: CreateFromTextDto,
+  ) {
+    return this.createTransactionFromTextUseCase.execute(req.user.userId, dto.text);
+  }
+
+  @Post('from-audio')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('audio', {
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB max
+    },
+    fileFilter: (_req, file, callback) => {
+      const allowedMimeTypes = [
+        'audio/mpeg',      // mp3
+        'audio/mp3',       // mp3 alternative
+        'audio/wav',       // wav
+        'audio/wave',      // wav alternative
+        'audio/x-wav',     // wav alternative
+        'audio/x-m4a',     // m4a
+        'audio/mp4',       // m4a alternative
+        'audio/aac',       // aac
+        'audio/ogg',       // ogg
+        'audio/webm',      // webm
+      ];
+      if (allowedMimeTypes.includes(file.mimetype)) {
+        callback(null, true);
+      } else {
+        callback(new BadRequestException(
+          `Unsupported audio format: ${file.mimetype}. Supported formats: mp3, wav, m4a, aac, ogg, webm`
+        ), false);
+      }
+    },
+  }))
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        audio: {
+          type: 'string',
+          format: 'binary',
+          description: 'Audio file (mp3, wav, m4a). Max size: 10MB',
+        },
+      },
+    },
+  })
+  @ApiOperation({
+    summary: 'Extract transactions from audio file',
+    description: 'Transcribes an audio file (mp3, wav, m4a) using Vosk and parses it into transaction data. Max file size: 10MB.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid file format or file too large (max 10MB).',
+  })
+  async createFromAudio(
+    @Request() req: RequestWithUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No audio file provided');
+    }
+    return this.createTransactionFromAudioUseCase.execute(req.user.userId, file.buffer);
   }
 }
