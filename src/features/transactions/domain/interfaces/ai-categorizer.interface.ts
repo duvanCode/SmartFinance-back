@@ -6,6 +6,7 @@ export interface AICategorizationResult {
     reasoning: string;
     description?: string;
     amount?: number;
+    type?: 'INCOME' | 'EXPENSE';
 }
 
 export interface IAICategorizer {

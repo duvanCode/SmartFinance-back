@@ -118,6 +118,7 @@ ${JSON.stringify(categoriesContext, null, 2)}`;
             const categoriesContext = availableCategories.map((c) => ({
                 id: c.id,
                 name: c.name.getValue(),
+                type: c.type,
             }));
 
             const systemPrompt = `You are a financial transaction parser.
@@ -129,14 +130,16 @@ Rules:
 2. Each item in the array must be:
    {
      "description": "Extracted description (e.g., 'Uber trip')",
-     "amount": number (positive for expense),
+     "amount": number (positive value),
+     "type": "INCOME" or "EXPENSE" (based on context: salary/payment received = INCOME, spending/purchase = EXPENSE),
      "categoryId": "UUID from the provided list",
      "confidence": number between 0.0 and 1.0,
      "reasoning": "Short explanation"
    }
-3. If a transaction mentions "ayer" (yesterday) or specific dates, include them in description.
-4. Ignore conversational filler (e.g., "Hi", "Please record").
-5. If no transactions found, return empty array [].`;
+3. Determine type based on context: words like "pagaron", "salario", "ingreso", "recibí" indicate INCOME. Words like "gasté", "compré", "pagué" indicate EXPENSE.
+4. If a transaction mentions "ayer" (yesterday) or specific dates, include them in description.
+5. Ignore conversational filler (e.g., "Hi", "Please record").
+6. If no transactions found, return empty array [].`;
 
             const userMessage = `Text to parse: "${text}"
 
@@ -168,6 +171,7 @@ ${JSON.stringify(categoriesContext, null, 2)}`;
                 reasoning: result.reasoning,
                 description: result.description,
                 amount: result.amount,
+                type: result.type || 'EXPENSE',
             }));
 
         } catch (error) {
