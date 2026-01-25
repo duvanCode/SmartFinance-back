@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -23,9 +23,13 @@ import { TOKEN_GENERATOR } from './application/ports/token-generator.interface';
 // Strategies
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 
+// Modules
+import { CategoriesModule } from '@features/categories/categories.module';
+
 @Module({
   imports: [
     PassportModule,
+    forwardRef(() => CategoriesModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService): JwtModuleOptions => {
@@ -67,4 +71,4 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
   ],
   exports: [ValidateTokenUseCase, USER_REPOSITORY],
 })
-export class AuthModule {}
+export class AuthModule { }

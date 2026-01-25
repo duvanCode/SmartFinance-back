@@ -12,7 +12,10 @@
       "Bash(npm install:*)",
       "Bash(npm run test:cov:*)",
       "Bash(node -e:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npm run start:dev:*)",
+      "WebFetch(domain:console.groq.com)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }

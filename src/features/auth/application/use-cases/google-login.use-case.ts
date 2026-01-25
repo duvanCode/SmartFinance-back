@@ -14,6 +14,7 @@ import {
 } from '../ports/token-generator.interface';
 import { User } from '../../domain/entities/user.entity';
 import { AuthResponseDto } from '../dto/auth-response.dto';
+import { InitializeUserCategoriesUseCase } from '@features/categories/application/use-cases/initialize-user-categories.use-case';
 
 export interface GoogleLoginInput {
   token: string;
@@ -21,8 +22,7 @@ export interface GoogleLoginInput {
 
 @Injectable()
 export class GoogleLoginUseCase
-  implements BaseUseCase<GoogleLoginInput, AuthResponseDto>
-{
+  implements BaseUseCase<GoogleLoginInput, AuthResponseDto> {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
@@ -30,7 +30,8 @@ export class GoogleLoginUseCase
     private readonly oauthProvider: IOAuthProvider,
     @Inject(TOKEN_GENERATOR)
     private readonly tokenGenerator: ITokenGenerator,
-  ) {}
+    private readonly initializeUserCategoriesUseCase: InitializeUserCategoriesUseCase,
+  ) { }
 
   async execute(input: GoogleLoginInput): Promise<AuthResponseDto> {
     // 1. Validar token de Google
@@ -48,6 +49,7 @@ export class GoogleLoginUseCase
         googleUser.picture,
       );
       user = await this.userRepository.create(user);
+      await this.initializeUserCategoriesUseCase.execute(user.id);
     }
 
     // 4. Generar JWT

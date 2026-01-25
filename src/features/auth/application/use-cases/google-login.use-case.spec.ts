@@ -3,12 +3,14 @@ import { IUserRepository } from '../../domain/repositories/user.repository.inter
 import { IOAuthProvider } from '../ports/oauth-provider.interface';
 import { ITokenGenerator } from '../ports/token-generator.interface';
 import { User } from '../../domain/entities/user.entity';
+import { InitializeUserCategoriesUseCase } from '@features/categories/application/use-cases/initialize-user-categories.use-case';
 
 describe('GoogleLoginUseCase', () => {
   let useCase: GoogleLoginUseCase;
   let userRepository: jest.Mocked<IUserRepository>;
   let oauthProvider: jest.Mocked<IOAuthProvider>;
   let tokenGenerator: jest.Mocked<ITokenGenerator>;
+  let initializeUserCategoriesUseCase: jest.Mocked<InitializeUserCategoriesUseCase>;
 
   beforeEach(() => {
     userRepository = {
@@ -27,12 +29,17 @@ describe('GoogleLoginUseCase', () => {
     tokenGenerator = {
       generate: jest.fn(),
       verify: jest.fn(),
-    };
+    } as any;
+
+    initializeUserCategoriesUseCase = {
+      execute: jest.fn(),
+    } as any;
 
     useCase = new GoogleLoginUseCase(
       userRepository,
       oauthProvider,
       tokenGenerator,
+      initializeUserCategoriesUseCase,
     );
   });
 
@@ -95,6 +102,7 @@ describe('GoogleLoginUseCase', () => {
 
       expect(userRepository.findByGoogleId).toHaveBeenCalledWith('google-456');
       expect(userRepository.create).toHaveBeenCalled();
+      expect(initializeUserCategoriesUseCase.execute).toHaveBeenCalled();
       expect(result.accessToken).toBe('jwt-token-456');
       expect(result.user.email).toBe('newuser@example.com');
     });
