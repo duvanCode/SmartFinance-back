@@ -27,12 +27,13 @@ import { CategoriesModule } from '@features/categories/categories.module';
 import { AI_CATEGORIZER } from './domain/interfaces/ai-categorizer.interface';
 import { SPEECH_TO_TEXT } from './domain/interfaces/speech-to-text.interface';
 import { GroqCategorizerAdapter } from './infrastructure/ai-adapters/groq.adapter';
-import { VoskAdapter } from './infrastructure/ai-adapters/vosk.adapter';
+import { GroqWhisperAdapter } from './infrastructure/ai-adapters/groq-whisper.adapter';
 import { ConfigModule } from '@nestjs/config';
 
 // Logic Use Cases for AI
 import { CreateTransactionFromTextUseCase } from './application/use-cases/create-transaction-from-text.use-case';
 import { CreateTransactionFromAudioUseCase } from './application/use-cases/create-transaction-from-audio.use-case';
+import { GetTotalBalanceUseCase } from './application/use-cases/get-total-balance.use-case';
 
 @Module({
   imports: [AuthModule, CategoriesModule, ConfigModule],
@@ -48,6 +49,7 @@ import { CreateTransactionFromAudioUseCase } from './application/use-cases/creat
     CategorizeTransactionUseCase,
     CreateTransactionFromTextUseCase,
     CreateTransactionFromAudioUseCase,
+    GetTotalBalanceUseCase,
 
     // Repositories
     {
@@ -61,10 +63,10 @@ import { CreateTransactionFromAudioUseCase } from './application/use-cases/creat
       useClass: GroqCategorizerAdapter,
     },
 
-    // Speech to Text Adapter (Vosk - Offline)
+    // Speech to Text Adapter (Groq Whisper - Ultra Fast)
     {
       provide: SPEECH_TO_TEXT,
-      useClass: VoskAdapter,
+      useClass: GroqWhisperAdapter,
     },
   ],
   exports: [TRANSACTION_REPOSITORY],

@@ -19,6 +19,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateFromTextDto } from '../../application/dto/create-from-text.dto';
 import { CreateTransactionFromTextUseCase } from '../../application/use-cases/create-transaction-from-text.use-case';
 import { CreateTransactionFromAudioUseCase } from '../../application/use-cases/create-transaction-from-audio.use-case';
+import { GetTotalBalanceUseCase } from '../../application/use-cases/get-total-balance.use-case';
 import {
   ApiTags,
   ApiOperation,
@@ -69,7 +70,23 @@ export class TransactionsController {
     private readonly categorizeTransactionUseCase: CategorizeTransactionUseCase,
     private readonly createTransactionFromTextUseCase: CreateTransactionFromTextUseCase,
     private readonly createTransactionFromAudioUseCase: CreateTransactionFromAudioUseCase,
+    private readonly getTotalBalanceUseCase: GetTotalBalanceUseCase,
   ) { }
+
+  @Get('balance')
+  @ApiOperation({
+    summary: 'Get total balance',
+    description: 'Get all-time total income, expense, and balance.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Total balance information.',
+  })
+  async getBalance(@Request() req: RequestWithUser) {
+    return this.getTotalBalanceUseCase.execute({
+      userId: req.user.userId,
+    });
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
