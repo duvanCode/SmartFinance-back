@@ -41,8 +41,8 @@ RUN npx prisma generate
 # Copy built application
 COPY --from=builder /app/dist ./dist
 
-# Change ownership
-RUN chown -R nestjs:nodejs /app
+# Create logs directory and change ownership
+RUN mkdir -p logs && chown -R nestjs:nodejs /app
 
 # Switch to non-root user
 USER nestjs
@@ -51,8 +51,8 @@ USER nestjs
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/live || exit 1
 
 # Start application
 CMD ["node", "dist/main"]

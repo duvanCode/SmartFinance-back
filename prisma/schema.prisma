@@ -70,6 +70,7 @@ model Category {
   budgets      Budget[]
 
   @@index([userId])
+  @@index([userId, type]) // For filtering categories by type
   @@map("categories")
 }
 
@@ -95,6 +96,8 @@ model Transaction {
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   @@index([userId, date])
+  @@index([userId, type])      // For filtering by transaction type
+  @@index([userId, date, type]) // For combined filters
   @@index([categoryId])
   @@map("transactions")
 }
@@ -118,6 +121,7 @@ model Budget {
 
   @@unique([userId, categoryId, period])
   @@index([userId])
+  @@index([userId, isActive]) // For querying active budgets
   @@index([categoryId])
   @@map("budgets")
 }
