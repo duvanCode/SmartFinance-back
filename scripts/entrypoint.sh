@@ -33,6 +33,14 @@ npx prisma migrate deploy || {
 
 echo "Migrations completed successfully!"
 
+# Run seed (optional, only if seed file exists and hasn't been run)
+if [ -f "prisma/seed.ts" ]; then
+  echo "Running database seed..."
+  npm run prisma:seed || {
+    echo "Warning: Seed failed (this may be expected if data already exists)"
+  }
+fi
+
 # Start the application
 echo "Starting application..."
 exec node dist/main.js
