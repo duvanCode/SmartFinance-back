@@ -63,12 +63,14 @@ RUN mkdir -p logs && chown -R nestjs:nodejs /app
 # Switch to non-root user
 USER nestjs
 
-# Expose port
-EXPOSE 3000
+# Port configuration (can be overridden at build time)
+ARG PORT=3000
+ENV PORT=${PORT}
+EXPOSE ${PORT}
 
-# Health check
+# Health check uses the PORT environment variable
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/live || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health/live || exit 1
 
 # Entrypoint handles DB wait and migrations
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
