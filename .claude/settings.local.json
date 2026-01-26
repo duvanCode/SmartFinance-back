@@ -16,7 +16,8 @@
       "Bash(npm run start:dev:*)",
       "WebFetch(domain:console.groq.com)",
       "Bash(npm uninstall:*)",
-      "Bash(npm run start)"
+      "Bash(npm run start)",
+      "Bash(docker logs:*)"
     ]
   }
 }

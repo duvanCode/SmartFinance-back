@@ -53,9 +53,9 @@ RUN npx prisma generate
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 
-# Copy entrypoint script
+# Copy entrypoint script and fix Windows line endings (CRLF -> LF)
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 # Create logs directory and set ownership
 RUN mkdir -p logs && chown -R nestjs:nodejs /app
