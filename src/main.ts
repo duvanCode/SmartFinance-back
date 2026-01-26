@@ -102,7 +102,6 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  const logger = new Logger('Bootstrap');
   logger.log(`Application is running on: http://localhost:${port}/${apiPrefix}/${apiVersion}`);
   logger.log(`Health check: http://localhost:${port}/health`);
   if (!isProduction || configService.get<boolean>('SWAGGER_ENABLED')) {
