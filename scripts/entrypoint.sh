@@ -1,46 +1,37 @@
 #!/bin/sh
 set -e
 
-echo "--- SmartFinance Backend Entrypoint ---"
+echo "=== SmartFinance Backend Entrypoint ==="
 
-# Wait for DB to be ready
-echo "Waiting for database at db:${DB_PORT:-5656}..."
-max_attempts=30
+# Configuration
+DB_HOST="${DB_HOST:-db}"
+DB_PORT="${DB_PORT:-5432}"
+MAX_RETRIES=30
+RETRY_INTERVAL=2
+
+# Wait for database to be ready
+echo "Waiting for database at ${DB_HOST}:${DB_PORT}..."
 attempt=0
-while ! nc -z db ${DB_PORT:-5656}; do
-  attempt=$((attempt + 1))
-  if [ $attempt -ge $max_attempts ]; then
-    echo "Error: Database not available after $max_attempts attempts"
-    exit 1
-  fi
-  sleep 1
+while ! nc -z "$DB_HOST" "$DB_PORT"; do
+    attempt=$((attempt + 1))
+    if [ $attempt -ge $MAX_RETRIES ]; then
+        echo "ERROR: Database not available after $MAX_RETRIES attempts"
+        exit 1
+    fi
+    echo "  Attempt $attempt/$MAX_RETRIES - Database not ready, retrying in ${RETRY_INTERVAL}s..."
+    sleep $RETRY_INTERVAL
 done
-echo "Database is up!"
+echo "Database is ready!"
 
-# Generate Prisma Client
-echo "Generating Prisma client..."
-npx prisma generate || {
-  echo "Error: Failed to generate Prisma client"
-  exit 1
-}
-
-# Run migrations (always, not just in production)
+# Run Prisma migrations
 echo "Running Prisma migrations..."
-npx prisma migrate deploy || {
-  echo "Error: Failed to run migrations"
-  exit 1
-}
-
-echo "Migrations completed successfully!"
-
-# Run seed (optional, only if seed file exists and hasn't been run)
-if [ -f "prisma/seed.ts" ]; then
-  echo "Running database seed..."
-  npm run prisma:seed || {
-    echo "Warning: Seed failed (this may be expected if data already exists)"
-  }
+if npx prisma migrate deploy; then
+    echo "Migrations completed successfully!"
+else
+    echo "ERROR: Failed to run migrations"
+    exit 1
 fi
 
 # Start the application
-echo "Starting application..."
+echo "Starting NestJS application..."
 exec node dist/main.js

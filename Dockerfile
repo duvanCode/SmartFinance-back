@@ -1,64 +1,38 @@
+# ===========================================
 # Build stage
+# ===========================================
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Add ARGs for build time
-ARG DATABASE_URL
-ARG NODE_ENV
-ARG PORT
-ARG DB_USER
-ARG DB_PASSWORD
-ARG DB_NAME
-ARG DB_HOST
-ARG DB_PORT
-
-# Install system dependencies
+# Install build dependencies
 RUN apk add --no-cache openssl libc6-compat
 
-# Copy package files
+# Copy package files first for better layer caching
 COPY package.json package-lock.json* ./
-COPY prisma ./prisma/
 
-# Install dependencies
-RUN npm install
+# Install all dependencies (including dev)
+RUN npm ci
+
+# Copy prisma schema and generate client
+COPY prisma ./prisma/
+RUN npx prisma generate
 
 # Copy source code
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
-
 # Build application
 RUN npm run build
 
+# ===========================================
 # Production stage
+# ===========================================
 FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Install system dependencies needed for Prisma
-RUN apk add --no-cache openssl libc6-compat
-
-# Add ARGs for build time in production
-ARG DATABASE_URL
-ARG NODE_ENV
-ARG PORT
-ARG DB_USER
-ARG DB_PASSWORD
-ARG DB_NAME
-ARG DB_HOST
-ARG DB_PORT
-
-# Set them as ENV for runtime
-ENV DATABASE_URL=$DATABASE_URL
-ENV NODE_ENV=$NODE_ENV
-ENV PORT=$PORT
-ENV DB_USER=$DB_USER
-ENV DB_PASSWORD=$DB_PASSWORD
-ENV DB_NAME=$DB_NAME
-ENV DB_HOST=$DB_HOST
-ENV DB_PORT=$DB_PORT
+# Install runtime dependencies including netcat for DB wait
+RUN apk add --no-cache openssl libc6-compat netcat-openbsd
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -68,21 +42,23 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY package.json package-lock.json* ./
 
 # Install production dependencies only
-RUN npm install --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
-# Copy Prisma files and generate client
+# Copy prisma schema and migrations
 COPY prisma ./prisma/
+
+# Generate Prisma client for production
 RUN npx prisma generate
 
-# Copy built application
+# Copy built application from builder
 COPY --from=builder /app/dist ./dist
-
-# Create logs directory and change ownership
-RUN mkdir -p logs && chown -R nestjs:nodejs /app
 
 # Copy entrypoint script
 COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Create logs directory and set ownership
+RUN mkdir -p logs && chown -R nestjs:nodejs /app
 
 # Switch to non-root user
 USER nestjs
@@ -91,8 +67,8 @@ USER nestjs
 EXPOSE 3000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/live || exit 1
 
-# Entrypoint handles wait-for-db and prisma
+# Entrypoint handles DB wait and migrations
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
