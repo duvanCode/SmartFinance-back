@@ -9,7 +9,7 @@ WORKDIR /app
 RUN apk add --no-cache openssl libc6-compat
 
 # Copy package files first for better layer caching
-COPY package.json package-lock.json ./
+COPY package*.json ./
 
 # Install all dependencies (including dev)
 RUN npm install
@@ -39,7 +39,7 @@ RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package*.json ./
 
 # Install production dependencies only
 RUN npm install --omit=dev && npm cache clean --force
