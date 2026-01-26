@@ -51,7 +51,7 @@ services:
     container_name: smartfinance-db
     restart: unless-stopped
     ports:
-      - '${DB_PORT:-5656}:${DB_PORT:-5656}'
+      - '${DB_PORT:-5656}:5432'
     environment:
       - POSTGRES_USER=${DB_USER:-postgres}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
