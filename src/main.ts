@@ -102,10 +102,14 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  logger.log(`Application is running on: http://localhost:${port}/${apiPrefix}/${apiVersion}`);
-  logger.log(`Health check: http://localhost:${port}/health`);
+  const protocol = isProduction ? 'https' : 'http';
+  const host = isProduction ? configService.get<string>('DOMAIN') || 'localhost' : 'localhost';
+  const displayPort = isProduction ? '' : `:${port}`;
+
+  logger.log(`Application is running on: ${protocol}://${host}${displayPort}/${apiPrefix}/${apiVersion}`);
+  logger.log(`Health check: ${protocol}://${host}${displayPort}/health`);
   if (!isProduction || configService.get<boolean>('SWAGGER_ENABLED')) {
-    logger.log(`Swagger documentation: http://localhost:${port}/docs`);
+    logger.log(`Swagger documentation: ${protocol}://${host}${displayPort}/docs`);
   }
 }
 
