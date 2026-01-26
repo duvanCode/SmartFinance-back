@@ -27,9 +27,8 @@ Thumbs.db
 coverage/
 .nyc_output/
 
-# Prisma
-prisma/migrations/*
-!prisma/migrations/.gitkeep
+# Prisma - migrations MUST be committed to git for production deployments
+# Only ignore local dev database files if any
 
 # Debug
 npm-debug.log*
