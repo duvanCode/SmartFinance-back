@@ -18,9 +18,25 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@shared/*": ["src/shared/*"],
-      "@features/*": ["src/features/*"],
-      "@config/*": ["src/shared/infrastructure/config/*"]
-    }
-  }
+      "@shared/*": [
+        "src/shared/*"
+      ],
+      "@features/*": [
+        "src/features/*"
+      ],
+      "@config/*": [
+        "src/shared/infrastructure/config/*"
+      ]
+    },
+    "rootDir": "src"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*spec.ts"
+  ]
 }
