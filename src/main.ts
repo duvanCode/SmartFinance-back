@@ -19,6 +19,24 @@ async function bootstrap() {
   const apiVersion = configService.get<string>('app.apiVersion') || 'v1';
   const isProduction = configService.get<string>('NODE_ENV') === 'production';
 
+  const logger = new Logger('Bootstrap');
+
+  // Debug DB connection (Safe logging - hides password)
+  const dbUrl = configService.get<string>('DATABASE_URL');
+  const dbUser = configService.get<string>('DB_USER');
+  const dbName = configService.get<string>('DB_NAME');
+  const dbHost = configService.get<string>('DB_HOST');
+  const dbPort = configService.get<string>('DB_PORT');
+
+  if (dbUrl) {
+    const maskedUrl = dbUrl.replace(/:([^:@]+)@/, ':****@');
+    logger.log(`Database URL: ${maskedUrl}`);
+  } else {
+    logger.warn('DATABASE_URL is not defined in environment variables');
+  }
+
+  logger.log(`DB Config -> User: ${dbUser}, Name: ${dbName}, Host: ${dbHost}, Port: ${dbPort}`);
+
   // Global prefix (exclude health endpoints)
   app.setGlobalPrefix(`${apiPrefix}/${apiVersion}`, {
     exclude: ['health', 'health/live', 'health/ready'],
