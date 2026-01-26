@@ -20,7 +20,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-smartfinance}?schema=public
+      - DATABASE_URL=${DATABASE_URL_DOCKER:-postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-smartfinance}?schema=public}
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
@@ -78,7 +78,7 @@ services:
       - '${PORT:-3000}:3000'
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-smartfinance}?schema=public
+      - DATABASE_URL=${DATABASE_URL_DOCKER:-postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-smartfinance}?schema=public}
       - JWT_SECRET=${JWT_SECRET:-dev-secret-key}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
