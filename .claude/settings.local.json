@@ -18,7 +18,8 @@
       "Bash(npm uninstall:*)",
       "Bash(npm run start)",
       "Bash(docker logs:*)",
-      "Bash(docker inspect:*)"
+      "Bash(docker inspect:*)",
+      "WebFetch(domain:docs.dokploy.com)"
     ]
   }
 }
