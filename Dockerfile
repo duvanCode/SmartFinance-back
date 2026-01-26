@@ -3,6 +3,16 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Add ARGs for build time
+ARG DATABASE_URL
+ARG NODE_ENV
+ARG PORT
+ARG DB_USER
+ARG DB_PASSWORD
+ARG DB_NAME
+ARG DB_HOST
+ARG DB_PORT
+
 # Install system dependencies
 RUN apk add --no-cache openssl libc6-compat
 
@@ -29,6 +39,26 @@ WORKDIR /app
 
 # Install system dependencies needed for Prisma
 RUN apk add --no-cache openssl libc6-compat
+
+# Add ARGs for build time in production
+ARG DATABASE_URL
+ARG NODE_ENV
+ARG PORT
+ARG DB_USER
+ARG DB_PASSWORD
+ARG DB_NAME
+ARG DB_HOST
+ARG DB_PORT
+
+# Set them as ENV for runtime
+ENV DATABASE_URL=$DATABASE_URL
+ENV NODE_ENV=$NODE_ENV
+ENV PORT=$PORT
+ENV DB_USER=$DB_USER
+ENV DB_PASSWORD=$DB_PASSWORD
+ENV DB_NAME=$DB_NAME
+ENV DB_HOST=$DB_HOST
+ENV DB_PORT=$DB_PORT
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \

@@ -4,6 +4,15 @@ services:
       context: .
       dockerfile: Dockerfile
       target: production
+      args:
+        - DATABASE_URL=${DATABASE_URL}
+        - NODE_ENV=${NODE_ENV:-production}
+        - PORT=${PORT:-3000}
+        - DB_USER=${DB_USER:-postgres}
+        - DB_PASSWORD=${DB_PASSWORD:-postgres}
+        - DB_NAME=${DB_NAME:-smartfinance}
+        - DB_HOST=${DB_HOST:-db}
+        - DB_PORT=${DB_PORT:-5656}
     container_name: smartfinance-api
     restart: unless-stopped
     ports:
@@ -21,7 +30,7 @@ services:
       - THROTTLE_LIMIT=${THROTTLE_LIMIT:-100}
       - SWAGGER_ENABLED=${SWAGGER_ENABLED:-false}
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health/live']
+      test: [ 'CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health/live' ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -42,7 +51,7 @@ services:
     container_name: smartfinance-db
     restart: unless-stopped
     ports:
-      - '${DB_PORT:-5432}:5432'
+      - '${DB_PORT:-5656}:5432'
     environment:
       - POSTGRES_USER=${DB_USER:-postgres}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
@@ -50,7 +59,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-smartfinance}']
+      test: [ 'CMD-SHELL', 'pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-smartfinance}' ]
       interval: 10s
       timeout: 5s
       retries: 5
