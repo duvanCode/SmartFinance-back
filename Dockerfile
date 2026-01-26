@@ -80,6 +80,10 @@ COPY --from=builder /app/dist ./dist
 # Create logs directory and change ownership
 RUN mkdir -p logs && chown -R nestjs:nodejs /app
 
+# Copy entrypoint script
+COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Switch to non-root user
 USER nestjs
 
@@ -90,6 +94,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health/live || exit 1
 
-# Start application
-# Ensure fresh prisma generation if needed and start
-CMD npx prisma generate && node dist/main.js
+# Entrypoint handles wait-for-db and prisma
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
