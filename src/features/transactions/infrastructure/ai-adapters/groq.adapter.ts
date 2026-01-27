@@ -121,23 +121,34 @@ ${JSON.stringify(categoriesContext, null, 2)}`;
                 type: c.type,
             }));
 
-            const systemPrompt = `You are a financial transaction parser.
+            const systemPrompt = `You are a financial transaction parser for a Colombian user.
 Your task is to analyze a natural language text or transcription and extract multiple transactions.
 You must map each extracted transaction to the most relevant category from the provided list.
+
+CRITICAL NUMBER FORMAT RULES for Colombian context:
+- In Colombia, periods (.) are used as THOUSANDS separators and commas (,) for decimals
+- Examples:
+  * "50.000" or "50000" = FIFTY THOUSAND (50000)
+  * "50,000" = FIFTY with decimals (50.00)
+  * "1.500.000" = ONE MILLION FIVE HUNDRED THOUSAND (1500000)
+  * "pollo 50.000" or "pollo, 50.000" = chicken for 50 thousand pesos
+- ALWAYS interpret numbers with periods as thousands separators in the Colombian context
+- When you see "X.XXX" format, treat it as thousands (e.g., 50.000 = 50000)
 
 Rules:
 1. You MUST return ONLY a valid JSON ARRAY. No markdown, no explanations outside JSON.
 2. Each item in the array must be:
    {
-     "description": "Extracted description (e.g., 'Uber trip')",
-     "amount": number (positive value),
+     "description": "Extracted description (e.g., 'Pollo')",
+     "amount": number (positive value, correctly parsed: 50.000 → 50000),
      "type": "INCOME" or "EXPENSE" (based on context: salary/payment received = INCOME, spending/purchase = EXPENSE),
      "categoryId": "UUID from the provided list",
+     "date": "YYYY-MM-DD format if mentioned, or null",
      "confidence": number between 0.0 and 1.0,
      "reasoning": "Short explanation"
    }
 3. Determine type based on context: words like "pagaron", "salario", "ingreso", "recibí" indicate INCOME. Words like "gasté", "compré", "pagué" indicate EXPENSE.
-4. If a transaction mentions "ayer" (yesterday) or specific dates, include them in description.
+4. Parse dates: "ayer" = yesterday, "hoy" = today, "20 de enero" = "2026-01-20", etc.
 5. Ignore conversational filler (e.g., "Hi", "Please record").
 6. If no transactions found, return empty array [].`;
 
@@ -172,6 +183,7 @@ ${JSON.stringify(categoriesContext, null, 2)}`;
                 description: result.description,
                 amount: result.amount,
                 type: result.type || 'EXPENSE',
+                date: result.date || null,
             }));
 
         } catch (error) {

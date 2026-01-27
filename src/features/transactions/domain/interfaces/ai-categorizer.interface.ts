@@ -7,6 +7,7 @@ export interface AICategorizationResult {
     description?: string;
     amount?: number;
     type?: 'INCOME' | 'EXPENSE';
+    date?: string;
 }
 
 export interface IAICategorizer {
