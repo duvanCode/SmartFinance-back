@@ -35,6 +35,18 @@ enum BudgetPeriod {
   YEARLY
 }
 
+
+enum LoanType {
+  RECEIVED  // Préstamo recibido (yo debo dinero)
+  GIVEN     // Préstamo dado (me deben dinero)
+}
+
+enum LoanStatus {
+  ACTIVE     // Préstamo activo con saldo pendiente
+  PAID       // Préstamo completamente pagado
+  CANCELLED  // Préstamo cancelado
+}
+
 // User model - core entity for the system
 model User {
   id        String   @id @default(uuid())
@@ -49,6 +61,7 @@ model User {
   categories   Category[]
   transactions Transaction[]
   budgets      Budget[]
+  loans        Loan[]
 
   @@map("users")
 }
@@ -69,6 +82,7 @@ model Category {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
   budgets      Budget[]
+  loans        Loan[]
 
   @@index([userId])
   @@index([userId, type]) // For filtering categories by type
@@ -92,14 +106,21 @@ model Transaction {
   rawInput     String? @map("raw_input")
   aiConfidence Float?  @map("ai_confidence")
 
+  // Nuevos campos para préstamo
+  isLoan Boolean @default(false) @map("is_loan")
+  loanId String? @map("loan_id")
+
   // Relations
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  loan     Loan?    @relation(fields: [loanId], references: [id], onDelete: SetNull)
 
   @@index([userId, date])
   @@index([userId, type])      // For filtering by transaction type
   @@index([userId, date, type]) // For combined filters
   @@index([categoryId])
+  @@index([loanId])
+  @@index([userId, isLoan])
   @@map("transactions")
 }
 
@@ -125,4 +146,34 @@ model Budget {
   @@index([userId, isActive]) // For querying active budgets
   @@index([categoryId])
   @@map("budgets")
+}
+
+model Loan {
+  id             String     @id @default(uuid())
+  userId         String     @map("user_id")
+  name           String     // Ej: "Moto Honda", "Préstamo a Juan"
+  initialAmount  Decimal    @map("initial_amount") @db.Decimal(10, 2)
+  paidAmount     Decimal    @default(0) @map("paid_amount") @db.Decimal(10, 2)
+  pendingAmount  Decimal    @map("pending_amount") @db.Decimal(10, 2)
+  interestRate   Decimal?   @map("interest_rate") @db.Decimal(5, 2)
+  type           LoanType
+  status         LoanStatus @default(ACTIVE)
+  startDate      DateTime   @map("start_date")
+  categoryName   String?    @map("category_name")
+  notes          String?
+  creditorDebtor String?    @map("creditor_debtor") // Nombre persona/entidad
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  // Relaciones
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  categoryId   String?       @map("category_id")
+  transactions Transaction[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([userId, type])
+  @@index([userId, type, status])
+  @@map("loans")
 }

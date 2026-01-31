@@ -8,6 +8,10 @@ async function main() {
 
   // Clean existing data (in development only)
   if (process.env.NODE_ENV !== 'production') {
+    // Delete in order of dependency (children first)
+    await prisma.transaction.deleteMany();
+    await prisma.budget.deleteMany();
+    await prisma.loan.deleteMany();
     await prisma.category.deleteMany();
     await prisma.user.deleteMany();
     console.log('✅ Cleaned existing data');

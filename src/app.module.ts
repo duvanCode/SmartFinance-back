@@ -9,6 +9,7 @@ import { CategoriesModule } from './features/categories/categories.module';
 import { TransactionsModule } from './features/transactions/transactions.module';
 import { BudgetsModule } from './features/budgets/budgets.module';
 import { AnalyticsModule } from './features/analytics/analytics.module';
+import { LoansModule } from './features/loans/loans.module';
 import appConfig from './shared/infrastructure/config/app.config';
 import databaseConfig from './shared/infrastructure/config/database.config';
 
@@ -39,6 +40,7 @@ import databaseConfig from './shared/infrastructure/config/database.config';
     TransactionsModule,
     BudgetsModule,
     AnalyticsModule,
+    LoansModule,
   ],
   controllers: [],
   providers: [

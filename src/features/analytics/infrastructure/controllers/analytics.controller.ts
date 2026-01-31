@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '@features/auth/infrastructure/guards/jwt-auth.guar
 import { GetSpendingByCategoryUseCase } from '../../application/use-cases/get-spending-by-category.use-case';
 import { GetIncomeVsExpensesUseCase } from '../../application/use-cases/get-income-vs-expenses.use-case';
 import { GetMonthlyComparisonUseCase } from '../../application/use-cases/get-monthly-comparison.use-case';
+import { GetDashboardSummaryUseCase } from '../../application/use-cases/get-dashboard-summary.use-case';
 import { SpendingByCategoryDto, IncomeVsExpensesDto, MonthlyComparisonDto } from '../../application/dto/analytics.dto';
 
 interface RequestWithUser extends Request {
@@ -22,6 +23,7 @@ export class AnalyticsController {
         private readonly getSpendingByCategoryUseCase: GetSpendingByCategoryUseCase,
         private readonly getIncomeVsExpensesUseCase: GetIncomeVsExpensesUseCase,
         private readonly getMonthlyComparisonUseCase: GetMonthlyComparisonUseCase,
+        private readonly getDashboardSummaryUseCase: GetDashboardSummaryUseCase,
     ) { }
 
     @Get('spending-by-category')
@@ -63,5 +65,11 @@ export class AnalyticsController {
     @ApiResponse({ status: 200, type: MonthlyComparisonDto })
     async getMonthlyComparison(@Request() req: RequestWithUser): Promise<MonthlyComparisonDto> {
         return this.getMonthlyComparisonUseCase.execute(req.user.userId);
+    }
+
+    @Get('summary')
+    @ApiOperation({ summary: 'Get dashboard summary with real balance and loans' })
+    async getDashboardSummary(@Request() req: RequestWithUser) {
+        return this.getDashboardSummaryUseCase.execute(req.user.userId);
     }
 }
