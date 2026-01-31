@@ -10,7 +10,7 @@ import { InputSource } from '../../domain/enums/input-source.enum';
 
 @Injectable()
 export class TransactionPrismaRepository implements ITransactionRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findById(id: string): Promise<Transaction | null> {
     const transaction = await this.prisma.transaction.findUnique({
@@ -174,6 +174,8 @@ export class TransactionPrismaRepository implements ITransactionRepository {
     source: string;
     rawInput: string | null;
     aiConfidence: number | null;
+    isLoan: boolean;
+    loanId: string | null;
     createdAt: Date;
     updatedAt: Date;
   }): Transaction {
@@ -191,6 +193,8 @@ export class TransactionPrismaRepository implements ITransactionRepository {
       source: data.source as InputSource,
       rawInput: data.rawInput,
       aiConfidence: data.aiConfidence,
+      isLoan: data.isLoan,
+      loanId: data.loanId || undefined,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     });

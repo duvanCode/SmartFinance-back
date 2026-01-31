@@ -29,14 +29,13 @@ export interface UpdateTransactionInput {
 
 @Injectable()
 export class UpdateTransactionUseCase
-  implements BaseUseCase<UpdateTransactionInput, TransactionResponseDto>
-{
+  implements BaseUseCase<UpdateTransactionInput, TransactionResponseDto> {
   constructor(
     @Inject(TRANSACTION_REPOSITORY)
     private readonly transactionRepository: ITransactionRepository,
     @Inject(CATEGORY_REPOSITORY)
     private readonly categoryRepository: ICategoryRepository,
-  ) {}
+  ) { }
 
   async execute(input: UpdateTransactionInput): Promise<TransactionResponseDto> {
     // 1. Find transaction
@@ -53,7 +52,24 @@ export class UpdateTransactionUseCase
       );
     }
 
-    // 3. If updating category, validate it
+    // 3. Prevent editing loan transactions
+    console.log('🔍 UPDATE TRANSACTION DEBUG:', {
+      transactionId: transaction.id,
+      isLoan: transaction.isLoan,
+      loanId: transaction.loanId,
+      description: transaction.description,
+    });
+
+    if (transaction.isLoan) {
+      console.log('❌ BLOCKING: This is a loan transaction');
+      throw new BadRequestException(
+        'Cannot edit loan transactions directly. Please edit the loan instead.',
+      );
+    }
+
+    console.log('✅ ALLOWING: This is NOT a loan transaction');
+
+    // 4. If updating category, validate it
     if (input.categoryId && input.categoryId !== transaction.categoryId) {
       const newCategory = await this.categoryRepository.findById(input.categoryId);
 
@@ -81,7 +97,7 @@ export class UpdateTransactionUseCase
       }
     }
 
-    // 4. Prepare update values
+    // 5. Prepare update values
     const newDescription = input.description ?? transaction.description;
     const newAmount = input.amount
       ? new Money(input.amount)
@@ -91,14 +107,14 @@ export class UpdateTransactionUseCase
       ? new TransactionDate(input.date)
       : transaction.date;
 
-    // 5. Update transaction
+    // 6. Update transaction
     transaction.update(newDescription, newAmount, newCategoryId, newDate);
 
-    // 6. Persist changes
+    // 7. Persist changes
     const updatedTransaction =
       await this.transactionRepository.update(transaction);
 
-    // 7. Return DTO
+    // 8. Return DTO
     return TransactionResponseDto.fromEntity(updatedTransaction);
   }
 }

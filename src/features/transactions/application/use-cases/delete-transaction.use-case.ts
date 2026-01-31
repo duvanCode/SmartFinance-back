@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { BaseUseCase } from '@shared/application/base.use-case';
 import {
@@ -17,12 +18,11 @@ export interface DeleteTransactionInput {
 
 @Injectable()
 export class DeleteTransactionUseCase
-  implements BaseUseCase<DeleteTransactionInput, void>
-{
+  implements BaseUseCase<DeleteTransactionInput, void> {
   constructor(
     @Inject(TRANSACTION_REPOSITORY)
     private readonly transactionRepository: ITransactionRepository,
-  ) {}
+  ) { }
 
   async execute(input: DeleteTransactionInput): Promise<void> {
     // 1. Find transaction
@@ -39,7 +39,24 @@ export class DeleteTransactionUseCase
       );
     }
 
-    // 3. Delete transaction
+    // 3. Prevent deleting loan transactions
+    console.log('🔍 DELETE TRANSACTION DEBUG:', {
+      transactionId: transaction.id,
+      isLoan: transaction.isLoan,
+      loanId: transaction.loanId,
+      description: transaction.description,
+    });
+
+    if (transaction.isLoan) {
+      console.log('❌ BLOCKING: This is a loan transaction');
+      throw new BadRequestException(
+        'Cannot delete loan transactions directly. Please delete the loan instead.',
+      );
+    }
+
+    console.log('✅ ALLOWING: This is NOT a loan transaction');
+
+    // 4. Delete transaction
     await this.transactionRepository.delete(input.id);
   }
 }

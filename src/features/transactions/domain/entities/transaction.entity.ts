@@ -16,6 +16,8 @@ export interface TransactionProps {
   source?: InputSource;
   rawInput?: string;
   aiConfidence?: number;
+  isLoan?: boolean;
+  loanId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -30,6 +32,8 @@ export class Transaction extends BaseEntity {
   private _source: InputSource;
   private _rawInput?: string;
   private _aiConfidence?: number;
+  private _isLoan: boolean;
+  private _loanId?: string;
 
   constructor(props: TransactionProps) {
     super({
@@ -46,6 +50,8 @@ export class Transaction extends BaseEntity {
     this._source = props.source || InputSource.MANUAL;
     this._rawInput = props.rawInput;
     this._aiConfidence = props.aiConfidence;
+    this._isLoan = props.isLoan || false;
+    this._loanId = props.loanId;
   }
 
   // Getters
@@ -83,6 +89,14 @@ export class Transaction extends BaseEntity {
 
   get aiConfidence(): number | undefined {
     return this._aiConfidence;
+  }
+
+  get isLoan(): boolean {
+    return this._isLoan;
+  }
+
+  get loanId(): string | undefined {
+    return this._loanId;
   }
 
   // Business methods
@@ -198,6 +212,8 @@ export class Transaction extends BaseEntity {
     source: InputSource;
     rawInput: string | null;
     aiConfidence: number | null;
+    isLoan?: boolean;
+    loanId?: string | null;
     createdAt: Date;
     updatedAt: Date;
   }): Transaction {
@@ -212,6 +228,8 @@ export class Transaction extends BaseEntity {
       source: data.source,
       rawInput: data.rawInput ?? undefined,
       aiConfidence: data.aiConfidence ?? undefined,
+      isLoan: data.isLoan ?? false,
+      loanId: data.loanId ?? undefined,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     });

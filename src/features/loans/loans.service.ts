@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { LoansRepository } from './loans.repository';
 import { CreateLoanDto } from './dto/create-loan.dto';
+import { UpdateLoanDto } from './dto/update-loan.dto';
 import { RegisterPaymentDto } from './dto/register-payment.dto';
 import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service';
 import { LoanType, TransactionType, LoanStatus, CategoryType } from '@prisma/client';
@@ -129,6 +130,118 @@ export class LoansService {
         return this.prisma.loan.update({
             where: { id },
             data: { status: LoanStatus.PAID }
+        });
+    }
+
+    async update(userId: string, id: string, dto: UpdateLoanDto) {
+        const loan = await this.repository.findOne(id);
+        if (!loan || loan.userId !== userId) {
+            throw new NotFoundException('Loan not found');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            let categoryId = dto.categoryId !== undefined ? dto.categoryId : loan.categoryId;
+
+            // If no category provided and current loan has no category, create one
+            if (!categoryId) {
+                // Create category with loan name if provided, otherwise use existing loan name
+                const categoryName = dto.name || loan.name;
+                const newCategory = await tx.category.create({
+                    data: {
+                        userId,
+                        name: categoryName,
+                        type: CategoryType.EXPENSE,
+                        color: '#607D8B',
+                        icon: 'bank',
+                    },
+                });
+                categoryId = newCategory.id;
+            }
+
+            // Check if new category is already used by another active loan
+            if (categoryId && categoryId !== loan.categoryId) {
+                const existingLoanWithCategory = await tx.loan.findFirst({
+                    where: {
+                        userId,
+                        categoryId,
+                        status: LoanStatus.ACTIVE,
+                        id: { not: id }
+                    }
+                });
+
+                if (existingLoanWithCategory) {
+                    throw new BadRequestException('This category is already assigned to another active loan.');
+                }
+            }
+
+            const updatedLoan = await tx.loan.update({
+                where: { id },
+                data: {
+                    name: dto.name,
+                    initialAmount: dto.initialAmount,
+                    type: dto.type,
+                    startDate: dto.startDate ? new Date(dto.startDate) : undefined,
+                    interestRate: dto.interestRate,
+                    categoryName: dto.categoryName,
+                    creditorDebtor: dto.creditorDebtor,
+                    notes: dto.notes,
+                    categoryId,
+                },
+            });
+
+            // Update the initial transaction if relevant fields changed
+            if (dto.initialAmount !== undefined || dto.categoryId !== undefined || dto.startDate !== undefined || dto.name !== undefined || dto.type !== undefined) {
+                // Find the initial transaction (marked with isLoan=true and loanId)
+                const initialTransaction = await tx.transaction.findFirst({
+                    where: {
+                        loanId: id,
+                        isLoan: true,
+                    }
+                });
+
+                if (initialTransaction) {
+                    const transactionType = (dto.type || loan.type) === LoanType.RECEIVED
+                        ? TransactionType.INCOME
+                        : TransactionType.EXPENSE;
+
+                    await tx.transaction.update({
+                        where: { id: initialTransaction.id },
+                        data: {
+                            amount: dto.initialAmount !== undefined ? dto.initialAmount : loan.initialAmount,
+                            categoryId: categoryId,
+                            date: dto.startDate ? new Date(dto.startDate) : undefined,
+                            description: dto.name ? `Préstamo: ${dto.name}` : undefined,
+                            type: transactionType,
+                        }
+                    });
+                }
+            }
+
+            return updatedLoan;
+        });
+    }
+
+    async delete(userId: string, id: string) {
+        const loan = await this.repository.findOne(id);
+        if (!loan || loan.userId !== userId) {
+            throw new NotFoundException('Loan not found');
+        }
+
+        return this.prisma.$transaction(async (tx) => {
+            // Delete associated transactions
+            await tx.transaction.deleteMany({
+                where: {
+                    loanId: id,
+                    userId
+                }
+            });
+
+            // Delete the loan
+            await tx.loan.delete({
+                where: { id }
+            });
+
+            return { success: true };
         });
     }
 

@@ -174,5 +174,6 @@ model Loan {
   @@index([userId, status])
   @@index([userId, type])
   @@index([userId, type, status])
+  @@unique([userId, categoryId])
   @@map("loans")
 }

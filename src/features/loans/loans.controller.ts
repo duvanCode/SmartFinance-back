@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, HttpCode, HttpStatus } from '@nestjs/common';
 import { LoansService } from './loans.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
+import { UpdateLoanDto } from './dto/update-loan.dto';
 import { RegisterPaymentDto } from './dto/register-payment.dto';
 import { JwtAuthGuard } from '../../features/auth/infrastructure/guards/jwt-auth.guard'; // Adjust path if needed
 
@@ -34,5 +35,20 @@ export class LoansController {
     @Post(':id/finalize')
     finalize(@Request() req: RequestWithUser, @Param('id') id: string) {
         return this.loansService.finalize(req.user.userId, id);
+    }
+
+    @Put(':id')
+    update(
+        @Request() req: RequestWithUser,
+        @Param('id') id: string,
+        @Body() updateLoanDto: UpdateLoanDto
+    ) {
+        return this.loansService.update(req.user.userId, id, updateLoanDto);
+    }
+
+    @Delete(':id')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    delete(@Request() req: RequestWithUser, @Param('id') id: string) {
+        return this.loansService.delete(req.user.userId, id);
     }
 }
