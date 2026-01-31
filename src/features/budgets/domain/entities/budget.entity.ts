@@ -6,7 +6,9 @@ import { BudgetPeriod } from '../enums/budget-period.enum';
 export interface BudgetProps {
   id: string;
   userId: string;
-  categoryId: string;
+  name: string;
+  color: string;
+  categoryIds: string[];
   amount: BudgetAmount;
   period: BudgetPeriod;
   startDate?: Date;
@@ -18,7 +20,9 @@ export interface BudgetProps {
 
 export interface BudgetStatus {
   budgetId: string;
-  categoryId: string;
+  name: string;
+  color: string;
+  categoryIds: string[];
   budgetAmount: number;
   spentAmount: number;
   remainingAmount: number;
@@ -29,7 +33,9 @@ export interface BudgetStatus {
 
 export class Budget extends BaseEntity {
   private _userId: string;
-  private _categoryId: string;
+  private _name: string;
+  private _color: string;
+  private _categoryIds: string[];
   private _amount: BudgetAmount;
   private _period: BudgetPeriod;
   private _startDate?: Date;
@@ -43,7 +49,9 @@ export class Budget extends BaseEntity {
       updatedAt: props.updatedAt,
     });
     this._userId = props.userId;
-    this._categoryId = props.categoryId;
+    this._name = props.name;
+    this._color = props.color;
+    this._categoryIds = props.categoryIds;
     this._amount = props.amount;
     this._period = props.period;
     this._startDate = props.startDate;
@@ -56,8 +64,16 @@ export class Budget extends BaseEntity {
     return this._userId;
   }
 
-  get categoryId(): string {
-    return this._categoryId;
+  get name(): string {
+    return this._name;
+  }
+
+  get color(): string {
+    return this._color;
+  }
+
+  get categoryIds(): string[] {
+    return this._categoryIds;
   }
 
   get amount(): BudgetAmount {
@@ -81,8 +97,24 @@ export class Budget extends BaseEntity {
   }
 
   // Business methods
-  update(amount: BudgetAmount, period?: BudgetPeriod): void {
+  update(
+    name: string,
+    color: string,
+    amount: BudgetAmount,
+    categoryIds: string[],
+    period?: BudgetPeriod,
+  ): void {
+    if (!name || name.trim().length === 0) {
+      throw new Error('Name cannot be empty');
+    }
+    if (categoryIds.length === 0) {
+      throw new Error('At least one category must be selected');
+    }
+
+    this._name = name;
+    this._color = color;
     this._amount = amount;
+    this._categoryIds = categoryIds;
     if (period) {
       this._period = period;
     }
@@ -116,7 +148,9 @@ export class Budget extends BaseEntity {
 
     return {
       budgetId: this.id,
-      categoryId: this._categoryId,
+      name: this._name,
+      color: this._color,
+      categoryIds: this._categoryIds,
       budgetAmount,
       spentAmount,
       remainingAmount,
@@ -168,7 +202,9 @@ export class Budget extends BaseEntity {
   // Factory method
   static create(
     userId: string,
-    categoryId: string,
+    name: string,
+    color: string,
+    categoryIds: string[],
     amount: number,
     period: BudgetPeriod,
     startDate?: Date,
@@ -177,14 +213,19 @@ export class Budget extends BaseEntity {
     if (!userId || userId.trim().length === 0) {
       throw new Error('User ID cannot be empty');
     }
-    if (!categoryId || categoryId.trim().length === 0) {
-      throw new Error('Category ID cannot be empty');
+    if (!name || name.trim().length === 0) {
+      throw new Error('Name cannot be empty');
+    }
+    if (!categoryIds || categoryIds.length === 0) {
+      throw new Error('At least one category must be selected');
     }
 
     return new Budget({
       id: crypto.randomUUID(),
       userId,
-      categoryId,
+      name,
+      color: color || '#3B82F6',
+      categoryIds,
       amount: new BudgetAmount(amount),
       period,
       startDate,
@@ -198,7 +239,9 @@ export class Budget extends BaseEntity {
     return {
       id: this.id,
       userId: this._userId,
-      categoryId: this._categoryId,
+      name: this._name,
+      color: this._color,
+      // categoryIds not stored directly in table column, handled via relation in repository
       amount: this._amount.getValue(),
       period: this._period,
       startDate: this._startDate,
@@ -212,7 +255,9 @@ export class Budget extends BaseEntity {
   static fromPersistence(data: {
     id: string;
     userId: string;
-    categoryId: string;
+    name: string;
+    color: string;
+    categories?: { id: string }[];
     amount: Decimal;
     period: BudgetPeriod;
     startDate: Date | null;
@@ -224,7 +269,9 @@ export class Budget extends BaseEntity {
     return new Budget({
       id: data.id,
       userId: data.userId,
-      categoryId: data.categoryId,
+      name: data.name,
+      color: data.color,
+      categoryIds: data.categories?.map((c) => c.id) || [],
       amount: new BudgetAmount(data.amount),
       period: data.period,
       startDate: data.startDate ?? undefined,

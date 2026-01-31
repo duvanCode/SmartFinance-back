@@ -12,6 +12,7 @@ export class BudgetPrismaRepository implements IBudgetRepository {
     async findById(id: string): Promise<Budget | null> {
         const budget = await this.prisma.budget.findUnique({
             where: { id },
+            include: { categories: true },
         });
         return budget ? this.toDomain(budget) : null;
     }
@@ -19,6 +20,7 @@ export class BudgetPrismaRepository implements IBudgetRepository {
     async findByUserId(userId: string): Promise<Budget[]> {
         const budgets = await this.prisma.budget.findMany({
             where: { userId },
+            include: { categories: true },
             orderBy: { createdAt: 'desc' },
         });
         return budgets.map((b) => this.toDomain(b));
@@ -30,52 +32,45 @@ export class BudgetPrismaRepository implements IBudgetRepository {
                 userId,
                 isActive: true,
             },
+            include: { categories: true },
             orderBy: { createdAt: 'desc' },
         });
         return budgets.map((b) => this.toDomain(b));
     }
 
-    async findByUserIdAndCategoryId(
-        userId: string,
-        categoryId: string,
-    ): Promise<Budget | null> {
-        const budget = await this.prisma.budget.findFirst({
-            where: {
-                userId,
-                categoryId,
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-        return budget ? this.toDomain(budget) : null;
-    }
 
-    async findActiveByUserIdAndCategoryId(
-        userId: string,
-        categoryId: string,
-        period: BudgetPeriod,
-    ): Promise<Budget | null> {
-        const budget = await this.prisma.budget.findFirst({
-            where: {
-                userId,
-                categoryId,
-                period,
-                isActive: true,
-            },
-        });
-        return budget ? this.toDomain(budget) : null;
-    }
 
     async create(budget: Budget): Promise<Budget> {
-        const data = budget.toPersistence();
-        const created = await this.prisma.budget.create({ data });
+        const { categoryIds, ...data } = budget.toPersistence() as any;
+        // Don't save categoryIds directly as it's not in the model
+        delete data.categoryIds;
+
+        const created = await this.prisma.budget.create({
+            data: {
+                ...data,
+                categories: {
+                    connect: budget.categoryIds.map(id => ({ id }))
+                }
+            },
+            include: { categories: true }
+        });
         return this.toDomain(created);
     }
 
     async update(budget: Budget): Promise<Budget> {
-        const data = budget.toPersistence();
+        const { categoryIds, ...data } = budget.toPersistence() as any;
+        // Don't save categoryIds directly as it's not in the model
+        delete data.categoryIds;
+
         const updated = await this.prisma.budget.update({
             where: { id: budget.id },
-            data,
+            data: {
+                ...data,
+                categories: {
+                    set: budget.categoryIds.map(id => ({ id })) // Replace all relations
+                }
+            },
+            include: { categories: true }
         });
         return this.toDomain(updated);
     }
@@ -84,17 +79,21 @@ export class BudgetPrismaRepository implements IBudgetRepository {
         await this.prisma.budget.delete({ where: { id } });
     }
 
-    async existsActiveForCategory(
+    async existsActiveForCategories(
         userId: string,
-        categoryId: string,
+        categoryIds: string[],
         period: BudgetPeriod,
         excludeId?: string,
     ): Promise<boolean> {
         const whereClause: any = {
             userId,
-            categoryId,
             period,
             isActive: true,
+            categories: {
+                some: {
+                    id: { in: categoryIds }
+                }
+            }
         };
 
         if (excludeId) {
@@ -112,7 +111,9 @@ export class BudgetPrismaRepository implements IBudgetRepository {
         return Budget.fromPersistence({
             id: persistence.id,
             userId: persistence.userId,
-            categoryId: persistence.categoryId,
+            name: persistence.name,
+            color: persistence.color,
+            categories: persistence.categories, // Pass the included relation
             amount: new Decimal(persistence.amount),
             period: persistence.period as BudgetPeriod,
             startDate: persistence.startDate,

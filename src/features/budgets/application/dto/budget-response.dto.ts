@@ -15,10 +15,23 @@ export class BudgetResponseDto {
     userId: string;
 
     @ApiProperty({
-        description: 'Category ID associated with this budget',
-        example: 'category-123',
+        description: 'Budget name',
+        example: 'Groceries & Food',
     })
-    categoryId: string;
+    name: string;
+
+    @ApiProperty({
+        description: 'Budget color code (hex)',
+        example: '#3B82F6',
+    })
+    color: string;
+
+    @ApiProperty({
+        description: 'Category IDs associated with this budget',
+        example: ['category-123', 'category-456'],
+        type: [String],
+    })
+    categoryIds: string[];
 
     @ApiProperty({
         description: 'Budget amount limit',
@@ -70,7 +83,9 @@ export class BudgetResponseDto {
     constructor(data: {
         id: string;
         userId: string;
-        categoryId: string;
+        name: string;
+        color: string;
+        categoryIds: string[];
         amount: number;
         period: BudgetPeriod;
         startDate?: Date;
@@ -81,7 +96,9 @@ export class BudgetResponseDto {
     }) {
         this.id = data.id;
         this.userId = data.userId;
-        this.categoryId = data.categoryId;
+        this.name = data.name;
+        this.color = data.color;
+        this.categoryIds = data.categoryIds;
         this.amount = data.amount;
         this.period = data.period;
         this.startDate = data.startDate;

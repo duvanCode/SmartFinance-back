@@ -26,9 +26,10 @@ export class BudgetAnalyzerService {
         }
 
         const { startDate, endDate } = budget.getPeriodDateRange();
+
         const spentAmount = await this.getTotalSpentInPeriod(
             budget.userId,
-            budget.categoryId,
+            budget.categoryIds,
             startDate,
             endDate,
         );
@@ -44,33 +45,20 @@ export class BudgetAnalyzerService {
 
     async getTotalSpentInPeriod(
         userId: string,
-        categoryId: string,
+        categoryIds: string[],
         startDate: Date,
         endDate: Date,
     ): Promise<number> {
-        // We only sum EXPENSE transactions
-        const total = await this.transactionRepository.getTotalByUserIdAndDateRange(
-            userId,
-            startDate,
-            endDate,
-            TransactionType.EXPENSE,
-        );
-
-        // TODO: Filter by categoryId in repository query
-        // Since existing method might not support categoryId filtering yet, 
-        // we assume for now we might need to fetch by category or update repository.
-        // Checking ITransactionRepository interface...
-
-        // Based on interface from existing code, we need a method that filters by category AND date range.
-        // If not exists, we use findByUserIdAndDateRange and filter manually.
+        // Fetch all transactions for the user in the date range
         const transactions = await this.transactionRepository.findByUserIdAndDateRange(
             userId,
             startDate,
             endDate
         );
 
+        // Filter for EXPENSES that match ANY of the budget's categories
         const categoryExpenses = transactions
-            .filter(t => t.categoryId === categoryId && t.type === TransactionType.EXPENSE)
+            .filter(t => categoryIds.includes(t.categoryId) && t.type === TransactionType.EXPENSE)
             .reduce((sum, t) => sum + t.amount.toNumber(), 0);
 
         return categoryExpenses;

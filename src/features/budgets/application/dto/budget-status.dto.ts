@@ -7,11 +7,7 @@ export class BudgetStatusDto {
     })
     budgetId: string;
 
-    @ApiProperty({
-        description: 'Category ID',
-        example: 'category-123',
-    })
-    categoryId: string;
+
 
     @ApiProperty({
         description: 'Total budget amount',

@@ -128,7 +128,8 @@ model Transaction {
 model Budget {
   id         String       @id @default(uuid())
   userId     String       @map("user_id")
-  categoryId String       @map("category_id")
+  name       String
+  color      String       @default("#3B82F6")
   amount     Decimal      @db.Decimal(10, 2)
   period     BudgetPeriod
   startDate  DateTime?    @map("start_date")
@@ -138,13 +139,11 @@ model Budget {
   updatedAt  DateTime     @updatedAt @map("updated_at")
 
   // Relations
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories Category[]
 
-  @@unique([userId, categoryId, period])
   @@index([userId])
   @@index([userId, isActive]) // For querying active budgets
-  @@index([categoryId])
   @@map("budgets")
 }
 

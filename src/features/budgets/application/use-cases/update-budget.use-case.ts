@@ -11,6 +11,9 @@ import { BudgetAmount } from '../../domain/value-objects/budget-amount.vo';
 export interface UpdateBudgetInput {
     id: string;
     userId: string;
+    name?: string;
+    color?: string;
+    categoryIds?: string[];
     amount?: number;
     period?: BudgetPeriod;
 }
@@ -35,35 +38,46 @@ export class UpdateBudgetUseCase
         }
 
         // Check if updating period would cause conflict
-        if (input.period && input.period !== budget.period && budget.isActive) {
-            const exists = await this.budgetRepository.existsActiveForCategory(
+        // Check if updating period or categories would cause conflict
+        const targetPeriod = input.period || budget.period;
+        const targetCategoryIds = input.categoryIds || budget.categoryIds;
+
+        if (
+            (input.period || input.categoryIds) &&
+            budget.isActive
+        ) {
+            const exists = await this.budgetRepository.existsActiveForCategories(
                 input.userId,
-                budget.categoryId,
-                input.period,
+                targetCategoryIds,
+                targetPeriod,
                 budget.id, // Exclude current budget from check
             );
 
             if (exists) {
                 throw new BadRequestException(
-                    `An active budget already exists for this category with ${input.period} period`,
+                    `An active budget already exists for one of these categories with ${targetPeriod} period`,
                 );
             }
         }
 
-        if (input.amount) {
-            const newAmount = new BudgetAmount(input.amount);
-            budget.update(newAmount, input.period);
-        } else if (input.period) {
-            // If only updating period, we still need to pass amount to update method
-            budget.update(budget.amount, input.period);
-        }
+        const newAmount = input.amount ? new BudgetAmount(input.amount) : budget.amount;
+
+        budget.update(
+            input.name || budget.name,
+            input.color || budget.color,
+            newAmount,
+            input.categoryIds || budget.categoryIds,
+            input.period
+        );
 
         const updatedBudget = await this.budgetRepository.update(budget);
 
         return new BudgetResponseDto({
             id: updatedBudget.id,
             userId: updatedBudget.userId,
-            categoryId: updatedBudget.categoryId,
+            name: updatedBudget.name,
+            color: updatedBudget.color,
+            categoryIds: updatedBudget.categoryIds,
             amount: updatedBudget.amount.toNumber(),
             period: updatedBudget.period,
             startDate: updatedBudget.startDate,

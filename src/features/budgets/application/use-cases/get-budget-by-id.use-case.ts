@@ -33,7 +33,9 @@ export class GetBudgetByIdUseCase
         return new BudgetResponseDto({
             id: budget.id,
             userId: budget.userId,
-            categoryId: budget.categoryId,
+            name: budget.name,
+            color: budget.color,
+            categoryIds: budget.categoryIds,
             amount: budget.amount.toNumber(),
             period: budget.period,
             startDate: budget.startDate,

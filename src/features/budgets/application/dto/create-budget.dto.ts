@@ -4,12 +4,29 @@ import { BudgetPeriod } from '../../domain/enums/budget-period.enum';
 
 export class CreateBudgetDto {
   @ApiProperty({
-    description: 'Category ID the budget belongs to',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'Budget name',
+    example: 'Monthly Groceries',
   })
   @IsNotEmpty()
-  @IsUUID()
-  categoryId: string;
+  @IsString()
+  name: string;
+
+  @ApiProperty({
+    description: 'Color tag (hex code)',
+    example: '#3B82F6',
+  })
+  @IsNotEmpty()
+  @IsString()
+  color: string;
+
+  @ApiProperty({
+    description: 'Category IDs included in the budget',
+    example: ['550e8400-e29b-41d4-a716-446655440000'],
+    type: [String],
+  })
+  @IsNotEmpty()
+  @IsUUID('4', { each: true })
+  categoryIds: string[];
 
   @ApiProperty({
     description: 'Budget amount limit',

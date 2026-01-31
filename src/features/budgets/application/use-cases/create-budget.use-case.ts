@@ -15,7 +15,9 @@ import { CategoryType } from '../../../categories/domain/enums/category-type.enu
 
 export interface CreateBudgetInput {
     userId: string;
-    categoryId: string;
+    name: string;
+    color: string;
+    categoryIds: string[];
     amount: number;
     period: BudgetPeriod;
     startDate?: Date;
@@ -33,53 +35,59 @@ export class CreateBudgetUseCase
     ) { }
 
     async execute(input: CreateBudgetInput): Promise<BudgetResponseDto> {
-        // 1. Validate category exists and belongs to user
-        const category = await this.categoryRepository.findById(input.categoryId);
+        // 1. Validate all categories exist and belong to user and are EXPENSE type
+        for (const catId of input.categoryIds) {
+            const category = await this.categoryRepository.findById(catId);
 
-        if (!category) {
-            throw new NotFoundException(`Category with ID ${input.categoryId} not found`);
+            if (!category) {
+                throw new NotFoundException(`Category with ID ${catId} not found`);
+            }
+
+            if (category.userId !== input.userId) {
+                throw new NotFoundException(`Category with ID ${catId} not found`);
+            }
+
+            if (category.type !== CategoryType.EXPENSE) {
+                throw new BadRequestException(`Category "${category.name}" is not an EXPENSE category. Budgets can only be created for expenses.`);
+            }
         }
 
-        if (category.userId !== input.userId) {
-            throw new NotFoundException(`Category with ID ${input.categoryId} not found`);
-        }
-
-        // 2. Validate category type is EXPENSE
-        if (category.type !== CategoryType.EXPENSE) {
-            throw new BadRequestException('Budgets can only be created for EXPENSE categories');
-        }
-
-        // 3. Validate no active budget exists for same category and period
-        const exists = await this.budgetRepository.existsActiveForCategory(
+        // 2. Validate no active budget exists for ANY of the selected categories in the same period
+        // Use the new repository method to check for overlaps
+        const exists = await this.budgetRepository.existsActiveForCategories(
             input.userId,
-            input.categoryId,
+            input.categoryIds,
             input.period,
         );
 
         if (exists) {
             throw new BadRequestException(
-                `An active budget already exists for this category with ${input.period} period`,
+                `One or more selected categories already have an active budget for the ${input.period} period.`,
             );
         }
 
-        // 4. Create new Budget entity
+        // 3. Create new Budget entity
         const budget = Budget.create(
             input.userId,
-            input.categoryId,
+            input.name,
+            input.color,
+            input.categoryIds,
             input.amount,
             input.period,
             input.startDate,
             input.endDate,
         );
 
-        // 5. Persist via repository
+        // 4. Persist via repository
         const createdBudget = await this.budgetRepository.create(budget);
 
-        // 6. Return BudgetResponseDto
+        // 5. Return BudgetResponseDto
         return new BudgetResponseDto({
             id: createdBudget.id,
             userId: createdBudget.userId,
-            categoryId: createdBudget.categoryId,
+            name: createdBudget.name,
+            color: createdBudget.color,
+            categoryIds: createdBudget.categoryIds,
             amount: createdBudget.amount.toNumber(),
             period: createdBudget.period,
             startDate: createdBudget.startDate,
