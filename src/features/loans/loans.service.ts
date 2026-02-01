@@ -54,11 +54,12 @@ export class LoansService {
 
             // If no category provided, create a new one specific for this loan
             if (!categoryId) {
+                const categoryType = dto.type === LoanType.RECEIVED ? CategoryType.EXPENSE : CategoryType.INCOME;
                 const newCategory = await tx.category.create({
                     data: {
                         userId,
                         name: dto.name, // Use loan name for the category
-                        type: CategoryType.EXPENSE, // Default to EXPENSE for loans/debts tracking
+                        type: categoryType,
                         color: '#607D8B', // Default Blue-grey
                         icon: 'bank',
                     },
@@ -181,6 +182,16 @@ export class LoansService {
                 if (existingLoanWithCategory) {
                     throw new BadRequestException('This category is already assigned to another active loan.');
                 }
+            }
+
+            // If loan type is changing, update the category type as well
+            if (dto.type && dto.type !== loan.type) {
+                const newCategoryType = dto.type === LoanType.RECEIVED ? CategoryType.EXPENSE : CategoryType.INCOME;
+                // Update the category (whether it's the old one or a newly assigned/created one)
+                await tx.category.update({
+                    where: { id: categoryId },
+                    data: { type: newCategoryType }
+                });
             }
 
             const updatedLoan = await tx.loan.update({

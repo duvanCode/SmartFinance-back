@@ -25,14 +25,18 @@ describe('LoansService', () => {
         category: {
             create: jest.fn(),
             findFirst: jest.fn(),
+            update: jest.fn(),
         },
         loan: {
             create: jest.fn(),
             findMany: jest.fn(),
             findFirst: jest.fn(),
+            update: jest.fn(),
         },
         transaction: {
             create: jest.fn(),
+            findFirst: jest.fn(),
+            update: jest.fn(),
         }
     };
 
@@ -144,6 +148,40 @@ describe('LoansService', () => {
             }));
 
             expect(result.categoryId).toBe(newCategory.id);
+        });
+    });
+
+    describe('update', () => {
+        const userId = 'user-123';
+        const loanId = 'loan-1';
+        const mockLoan = {
+            id: loanId,
+            userId,
+            categoryId: 'cat-1',
+            type: LoanType.RECEIVED,
+            initialAmount: 1000,
+            name: 'Original Loan',
+        };
+
+        it('should update category type when loan type changes from RECEIVED to GIVEN', async () => {
+            const updateDto = { type: LoanType.GIVEN };
+
+            mockRepository.findOne.mockResolvedValue(mockLoan);
+            mockTx.loan.findFirst.mockResolvedValue(null); // No other loan using category
+            mockTx.category.update.mockResolvedValue({});
+            mockTx.loan.update.mockResolvedValue({ ...mockLoan, ...updateDto });
+            mockTx.transaction.findFirst.mockResolvedValue(null);
+
+            await service.update(userId, loanId, updateDto);
+
+            expect(mockTx.category.update).toHaveBeenCalledWith({
+                where: { id: mockLoan.categoryId },
+                data: { type: CategoryType.INCOME } // GIVEN -> INCOME
+            });
+
+            expect(mockTx.loan.update).toHaveBeenCalledWith(expect.objectContaining({
+                data: expect.objectContaining({ type: LoanType.GIVEN })
+            }));
         });
     });
 });
