@@ -2,6 +2,7 @@ import { UpdateCategoryUseCase } from './update-category.use-case';
 import { ICategoryRepository } from '../../domain/repositories/category.repository.interface';
 import { Category } from '../../domain/entities/category.entity';
 import { CategoryType } from '../../domain/enums/category-type.enum';
+import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 
 describe('UpdateCategoryUseCase', () => {
     let useCase: UpdateCategoryUseCase;
@@ -77,7 +78,7 @@ describe('UpdateCategoryUseCase', () => {
     });
 
     describe('Default category protection', () => {
-        it('should throw error when trying to update default category', async () => {
+        it('should throw BadRequestException when trying to update default category', async () => {
             const category = Category.create(
                 'user-123',
                 'Salary',
@@ -95,6 +96,14 @@ describe('UpdateCategoryUseCase', () => {
                     userId: 'user-123',
                     name: 'Monthly Salary',
                 }),
+            ).rejects.toThrow(BadRequestException);
+
+            await expect(
+                useCase.execute({
+                    id: category.id,
+                    userId: 'user-123',
+                    name: 'Monthly Salary',
+                }),
             ).rejects.toThrow('Cannot modify default categories');
 
             expect(categoryRepository.update).not.toHaveBeenCalled();
@@ -102,7 +111,7 @@ describe('UpdateCategoryUseCase', () => {
     });
 
     describe('Ownership validation', () => {
-        it('should throw error when user does not own the category', async () => {
+        it('should throw ForbiddenException when user does not own the category', async () => {
             const category = Category.create(
                 'user-123',
                 'Food',
@@ -120,6 +129,14 @@ describe('UpdateCategoryUseCase', () => {
                     userId: 'user-456', // Different user
                     name: 'Groceries',
                 }),
+            ).rejects.toThrow(ForbiddenException);
+
+            await expect(
+                useCase.execute({
+                    id: category.id,
+                    userId: 'user-456', // Different user
+                    name: 'Groceries',
+                }),
             ).rejects.toThrow('You do not have permission to update this category');
 
             expect(categoryRepository.update).not.toHaveBeenCalled();
@@ -127,8 +144,16 @@ describe('UpdateCategoryUseCase', () => {
     });
 
     describe('Error handling', () => {
-        it('should throw error when category is not found', async () => {
+        it('should throw NotFoundException when category is not found', async () => {
             categoryRepository.findById.mockResolvedValue(null);
+
+            await expect(
+                useCase.execute({
+                    id: 'non-existent-id',
+                    userId: 'user-123',
+                    name: 'Groceries',
+                }),
+            ).rejects.toThrow(NotFoundException);
 
             await expect(
                 useCase.execute({

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { BaseUseCase } from '@shared/application/base.use-case';
 import {
     ICategoryRepository,
@@ -29,39 +29,43 @@ export class UpdateCategoryUseCase
         const category = await this.categoryRepository.findById(input.id);
 
         if (!category) {
-            throw new Error(`Category with id "${input.id}" not found`);
+            throw new NotFoundException(`Category with id "${input.id}" not found`);
         }
 
         // 2. Validate ownership
         if (category.userId !== input.userId) {
-            throw new Error('You do not have permission to update this category');
+            throw new ForbiddenException('You do not have permission to update this category');
         }
 
         // 3. Update category (will throw error if it's a default category)
-        const updatedName = input.name
-            ? new CategoryName(input.name)
-            : category.name;
-        const updatedColor = input.color
-            ? new CategoryColor(input.color)
-            : category.color;
-        const updatedIcon = input.icon ?? category.icon;
+        try {
+            const updatedName = input.name
+                ? new CategoryName(input.name)
+                : category.name;
+            const updatedColor = input.color
+                ? new CategoryColor(input.color)
+                : category.color;
+            const updatedIcon = input.icon ?? category.icon;
 
-        category.update(updatedName, updatedColor, updatedIcon);
+            category.update(updatedName, updatedColor, updatedIcon);
 
-        // 4. Persist changes
-        const updated = await this.categoryRepository.update(category);
+            // 4. Persist changes
+            const updated = await this.categoryRepository.update(category);
 
-        // 5. Return response
-        return new CategoryResponseDto({
-            id: updated.id,
-            userId: updated.userId,
-            name: updated.name.getValue(),
-            type: updated.type,
-            color: updated.color.getValue(),
-            icon: updated.icon,
-            isDefault: updated.isDefault,
-            createdAt: updated.createdAt,
-            updatedAt: updated.updatedAt,
-        });
+            // 5. Return response
+            return new CategoryResponseDto({
+                id: updated.id,
+                userId: updated.userId,
+                name: updated.name.getValue(),
+                type: updated.type,
+                color: updated.color.getValue(),
+                icon: updated.icon,
+                isDefault: updated.isDefault,
+                createdAt: updated.createdAt,
+                updatedAt: updated.updatedAt,
+            });
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
     }
 }

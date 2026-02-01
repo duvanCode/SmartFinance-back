@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, ConflictException, BadRequestException } from '@nestjs/common';
 import { BaseUseCase } from '@shared/application/base.use-case';
 import {
     ICategoryRepository,
@@ -32,35 +32,41 @@ export class CreateCategoryUseCase
         );
 
         if (existingCategory) {
-            throw new Error(
+            throw new ConflictException(
                 `Category with name "${input.name}" already exists for this user`,
             );
         }
 
         // 2. Create new Category entity
-        const category = Category.create(
-            input.userId,
-            input.name,
-            input.type,
-            input.color,
-            input.icon,
-            false,
-        );
+        try {
+            const category = Category.create(
+                input.userId,
+                input.name,
+                input.type,
+                input.color,
+                input.icon,
+                false,
+            );
 
-        // 3. Persist via repository
-        const createdCategory = await this.categoryRepository.create(category);
+            // 3. Persist via repository
+            const createdCategory = await this.categoryRepository.create(category);
 
-        // 4. Return CategoryResponseDto
-        return new CategoryResponseDto({
-            id: createdCategory.id,
-            userId: createdCategory.userId,
-            name: createdCategory.name.getValue(),
-            type: createdCategory.type,
-            color: createdCategory.color.getValue(),
-            icon: createdCategory.icon,
-            isDefault: createdCategory.isDefault,
-            createdAt: createdCategory.createdAt,
-            updatedAt: createdCategory.updatedAt,
-        });
+            // 4. Return CategoryResponseDto
+            return new CategoryResponseDto({
+                id: createdCategory.id,
+                userId: createdCategory.userId,
+                name: createdCategory.name.getValue(),
+                type: createdCategory.type,
+                color: createdCategory.color.getValue(),
+                icon: createdCategory.icon,
+                isDefault: createdCategory.isDefault,
+                createdAt: createdCategory.createdAt,
+                updatedAt: createdCategory.updatedAt,
+            });
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
+
+
     }
 }

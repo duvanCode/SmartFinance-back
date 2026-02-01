@@ -81,7 +81,7 @@ export class Category extends BaseEntity {
       throw new Error('Icon cannot be empty');
     }
 
-    if (icon.length > 10) {
+    if (icon.length > 50) {
       throw new Error('Icon is too long');
     }
   }

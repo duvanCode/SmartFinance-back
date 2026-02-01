@@ -2,6 +2,7 @@ import { CreateCategoryUseCase } from './create-category.use-case';
 import { ICategoryRepository } from '../../domain/repositories/category.repository.interface';
 import { Category } from '../../domain/entities/category.entity';
 import { CategoryType } from '../../domain/enums/category-type.enum';
+import { ConflictException, BadRequestException } from '@nestjs/common';
 
 describe('CreateCategoryUseCase', () => {
     let useCase: CreateCategoryUseCase;
@@ -60,7 +61,7 @@ describe('CreateCategoryUseCase', () => {
     });
 
     describe('Duplicate name validation', () => {
-        it('should throw error when category name already exists for user', async () => {
+        it('should throw ConflictException when category name already exists for user', async () => {
             const input = {
                 userId: 'user-123',
                 name: 'Food',
@@ -82,6 +83,7 @@ describe('CreateCategoryUseCase', () => {
                 existingCategory,
             );
 
+            await expect(useCase.execute(input)).rejects.toThrow(ConflictException);
             await expect(useCase.execute(input)).rejects.toThrow(
                 'Category with name "Food" already exists for this user',
             );
@@ -91,7 +93,7 @@ describe('CreateCategoryUseCase', () => {
     });
 
     describe('Error handling', () => {
-        it('should throw error when repository create fails', async () => {
+        it('should throw BadRequestException when repository create fails', async () => {
             const input = {
                 userId: 'user-123',
                 name: 'Food',
@@ -103,7 +105,24 @@ describe('CreateCategoryUseCase', () => {
             categoryRepository.findByUserIdAndName.mockResolvedValue(null);
             categoryRepository.create.mockRejectedValue(new Error('Database error'));
 
+            await expect(useCase.execute(input)).rejects.toThrow(BadRequestException);
             await expect(useCase.execute(input)).rejects.toThrow('Database error');
+        });
+
+        it('should throw BadRequestException when validation fails', async () => {
+            const input = {
+                userId: 'user-123',
+                name: 'Food',
+                type: CategoryType.EXPENSE,
+                color: '#FF5733',
+                icon: 'a'.repeat(51), // Too long
+            };
+
+            categoryRepository.findByUserIdAndName.mockResolvedValue(null);
+
+            // Validation happens in Category.create inside the use case
+            await expect(useCase.execute(input)).rejects.toThrow(BadRequestException);
+            await expect(useCase.execute(input)).rejects.toThrow('Icon is too long');
         });
     });
 });

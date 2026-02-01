@@ -54,7 +54,7 @@ describe('Category Entity', () => {
           'Test',
           CategoryType.EXPENSE,
           '#FF5733',
-          'a'.repeat(11),
+          'a'.repeat(51),
         ),
       ).toThrow('Icon is too long');
     });
