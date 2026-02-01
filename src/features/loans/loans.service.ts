@@ -52,9 +52,18 @@ export class LoansService {
         return this.prisma.$transaction(async (tx) => {
             let categoryId = dto.categoryId;
 
-            // Fallback if no category provided (backward compatibility) or create new one
+            // If no category provided, create a new one specific for this loan
             if (!categoryId) {
-                categoryId = await this.getOrCreateLoanCategory(userId, tx);
+                const newCategory = await tx.category.create({
+                    data: {
+                        userId,
+                        name: dto.name, // Use loan name for the category
+                        type: CategoryType.EXPENSE, // Default to EXPENSE for loans/debts tracking
+                        color: '#607D8B', // Default Blue-grey
+                        icon: 'bank',
+                    },
+                });
+                categoryId = newCategory.id;
             }
 
             // Check if category is already used by another active loan
