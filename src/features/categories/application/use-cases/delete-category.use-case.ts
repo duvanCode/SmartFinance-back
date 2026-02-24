@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { BaseUseCase } from '@shared/application/base.use-case';
 import {
     ICategoryRepository,
@@ -36,7 +36,11 @@ export class DeleteCategoryUseCase
             throw new Error('Cannot delete default categories');
         }
 
-        // 4. Delete category
-        await this.categoryRepository.delete(input.id);
+        // 4. Delete category (catch Prisma constraints)
+        try {
+            await this.categoryRepository.delete(input.id);
+        } catch (error) {
+            throw new BadRequestException('Cannot delete category because it has associated transactions or loans.');
+        }
     }
 }
