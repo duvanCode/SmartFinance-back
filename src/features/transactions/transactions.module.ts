@@ -12,6 +12,7 @@ import { DeleteTransactionUseCase } from './application/use-cases/delete-transac
 
 import { GetTransactionStatsUseCase } from './application/use-cases/get-transaction-stats.use-case';
 import { CategorizeTransactionUseCase } from './application/use-cases/categorize-transaction.use-case';
+import { CreateTransferUseCase } from './application/use-cases/create-transfer.use-case';
 
 // Repositories
 import { TransactionPrismaRepository } from './infrastructure/repositories/transaction-prisma.repository';
@@ -22,6 +23,9 @@ import { AuthModule } from '@features/auth/auth.module';
 
 // Import CategoriesModule to access CATEGORY_REPOSITORY
 import { CategoriesModule } from '@features/categories/categories.module';
+
+// Import AccountsModule for validations
+import { AccountsModule } from '@features/accounts/accounts.module';
 
 // AI Integration
 import { AI_CATEGORIZER } from './domain/interfaces/ai-categorizer.interface';
@@ -36,11 +40,12 @@ import { CreateTransactionFromAudioUseCase } from './application/use-cases/creat
 import { GetTotalBalanceUseCase } from './application/use-cases/get-total-balance.use-case';
 
 @Module({
-  imports: [AuthModule, CategoriesModule, ConfigModule],
+  imports: [AuthModule, CategoriesModule, AccountsModule, ConfigModule],
   controllers: [TransactionsController],
   providers: [
     // Use Cases
     CreateTransactionUseCase,
+    CreateTransferUseCase,
     GetTransactionsUseCase,
     GetTransactionByIdUseCase,
     UpdateTransactionUseCase,

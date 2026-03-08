@@ -72,6 +72,8 @@ export class TransactionPrismaRepository implements ITransactionRepository {
         id: data.id,
         userId: data.userId,
         categoryId: data.categoryId,
+        accountId: data.accountId,
+        transferGroupId: data.transferGroupId,
         amount: data.amount,
         type: data.type,
         description: data.description,
@@ -94,6 +96,8 @@ export class TransactionPrismaRepository implements ITransactionRepository {
       where: { id: transaction.id },
       data: {
         categoryId: data.categoryId,
+        accountId: data.accountId,
+        transferGroupId: data.transferGroupId,
         amount: data.amount,
         description: data.description,
         date: data.date,
@@ -167,6 +171,8 @@ export class TransactionPrismaRepository implements ITransactionRepository {
     id: string;
     userId: string;
     categoryId: string;
+    accountId: string | null;
+    transferGroupId: string | null;
     amount: { toNumber: () => number } | number;
     type: string;
     description: string;
@@ -183,6 +189,7 @@ export class TransactionPrismaRepository implements ITransactionRepository {
       id: data.id,
       userId: data.userId,
       categoryId: data.categoryId,
+      accountId: data.accountId,
       amount:
         typeof data.amount === 'number'
           ? { toNumber: () => data.amount as number } as any
@@ -193,6 +200,7 @@ export class TransactionPrismaRepository implements ITransactionRepository {
       source: data.source as InputSource,
       rawInput: data.rawInput,
       aiConfidence: data.aiConfidence,
+      transferGroupId: data.transferGroupId,
       isLoan: data.isLoan,
       loanId: data.loanId || undefined,
       createdAt: data.createdAt,

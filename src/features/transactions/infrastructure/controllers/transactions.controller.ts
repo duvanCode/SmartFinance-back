@@ -19,6 +19,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateFromTextDto } from '../../application/dto/create-from-text.dto';
 import { CreateTransactionFromTextUseCase } from '../../application/use-cases/create-transaction-from-text.use-case';
 import { CreateTransactionFromAudioUseCase } from '../../application/use-cases/create-transaction-from-audio.use-case';
+import { CreateTransferUseCase } from '../../application/use-cases/create-transfer.use-case';
 import { GetTotalBalanceUseCase } from '../../application/use-cases/get-total-balance.use-case';
 import {
   ApiTags,
@@ -39,6 +40,7 @@ import { CreateTransactionDto } from '../../application/dto/create-transaction.d
 import { UpdateTransactionDto } from '../../application/dto/update-transaction.dto';
 import { TransactionResponseDto } from '../../application/dto/transaction-response.dto';
 import { TransactionStatsDto } from '../../application/dto/transaction-stats.dto';
+import { CreateTransferDto } from '../../application/dto/create-transfer.dto';
 import { CreateTransactionUseCase } from '../../application/use-cases/create-transaction.use-case';
 import { GetTransactionsUseCase } from '../../application/use-cases/get-transactions.use-case';
 import { GetTransactionByIdUseCase } from '../../application/use-cases/get-transaction-by-id.use-case';
@@ -68,6 +70,7 @@ export class TransactionsController {
     private readonly deleteTransactionUseCase: DeleteTransactionUseCase,
     private readonly getTransactionStatsUseCase: GetTransactionStatsUseCase,
     private readonly categorizeTransactionUseCase: CategorizeTransactionUseCase,
+    private readonly createTransferUseCase: CreateTransferUseCase,
     private readonly createTransactionFromTextUseCase: CreateTransactionFromTextUseCase,
     private readonly createTransactionFromAudioUseCase: CreateTransactionFromAudioUseCase,
     private readonly getTotalBalanceUseCase: GetTotalBalanceUseCase,
@@ -115,8 +118,37 @@ export class TransactionsController {
     return this.createTransactionUseCase.execute({
       userId: req.user.userId,
       categoryId: dto.categoryId,
+      accountId: dto.accountId,
       amount: dto.amount,
       type: dto.type,
+      description: dto.description,
+      date: dto.date,
+      transferGroupId: dto.transferGroupId,
+    });
+  }
+
+  @Post('transfer')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Transfer money between accounts',
+    description: 'Creates two linked transactions (expense from source, income to destination).',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Transfer created successfully. Returns the two linked transactions.',
+    type: [TransactionResponseDto],
+  })
+  async createTransfer(
+    @Request() req: RequestWithUser,
+    @Body() dto: CreateTransferDto,
+  ): Promise<TransactionResponseDto[]> {
+    return this.createTransferUseCase.execute({
+      userId: req.user.userId,
+      sourceAccountId: dto.sourceAccountId,
+      destinationAccountId: dto.destinationAccountId,
+      sourceCategoryId: dto.sourceCategoryId,
+      destinationCategoryId: dto.destinationCategoryId,
+      amount: dto.amount,
       description: dto.description,
       date: dto.date,
     });
@@ -298,6 +330,7 @@ export class TransactionsController {
       id,
       userId: req.user.userId,
       categoryId: dto.categoryId,
+      accountId: dto.accountId,
       amount: dto.amount,
       description: dto.description,
       date: dto.date,

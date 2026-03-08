@@ -14,6 +14,10 @@ import {
   ICategoryRepository,
   CATEGORY_REPOSITORY,
 } from '@features/categories/domain/repositories/category.repository.interface';
+import {
+  IAccountRepository,
+  ACCOUNT_REPOSITORY,
+} from '@features/accounts/domain/repositories/account.repository.interface';
 import { TransactionResponseDto } from '../dto/transaction-response.dto';
 import { Money } from '../../domain/value-objects/money.vo';
 import { TransactionDate } from '../../domain/value-objects/transaction-date.vo';
@@ -22,6 +26,7 @@ export interface UpdateTransactionInput {
   id: string;
   userId: string;
   categoryId?: string;
+  accountId?: string;
   amount?: number;
   description?: string;
   date?: string;
@@ -35,6 +40,8 @@ export class UpdateTransactionUseCase
     private readonly transactionRepository: ITransactionRepository,
     @Inject(CATEGORY_REPOSITORY)
     private readonly categoryRepository: ICategoryRepository,
+    @Inject(ACCOUNT_REPOSITORY)
+    private readonly accountRepository: IAccountRepository,
   ) { }
 
   async execute(input: UpdateTransactionInput): Promise<TransactionResponseDto> {
@@ -97,24 +104,36 @@ export class UpdateTransactionUseCase
       }
     }
 
-    // 5. Prepare update values
+    // 5. If updating account, validate it
+    if (input.accountId && input.accountId !== transaction.accountId) {
+      const newAccount = await this.accountRepository.findById(input.accountId, input.userId);
+      if (!newAccount) {
+        throw new BadRequestException(`Account with id "${input.accountId}" not found`);
+      }
+      if (!newAccount.isActive) {
+        throw new BadRequestException('Cannot move transaction to an inactive account');
+      }
+    }
+
+    // 6. Prepare update values
     const newDescription = input.description ?? transaction.description;
     const newAmount = input.amount
       ? new Money(input.amount)
       : transaction.amount;
     const newCategoryId = input.categoryId ?? transaction.categoryId;
+    const newAccountId = input.accountId ?? transaction.accountId;
     const newDate = input.date
       ? new TransactionDate(input.date)
       : transaction.date;
 
-    // 6. Update transaction
-    transaction.update(newDescription, newAmount, newCategoryId, newDate);
+    // 7. Update transaction
+    transaction.update(newDescription, newAmount, newCategoryId, newAccountId, newDate);
 
-    // 7. Persist changes
+    // 8. Persist changes
     const updatedTransaction =
       await this.transactionRepository.update(transaction);
 
-    // 8. Return DTO
+    // 9. Return DTO
     return TransactionResponseDto.fromEntity(updatedTransaction);
   }
 }

@@ -9,6 +9,8 @@ export interface TransactionProps {
   id: string;
   userId: string;
   categoryId: string;
+  accountId: string;
+  transferGroupId?: string;
   amount: Money;
   type: TransactionType;
   description: string;
@@ -25,6 +27,8 @@ export interface TransactionProps {
 export class Transaction extends BaseEntity {
   private _userId: string;
   private _categoryId: string;
+  private _accountId: string;
+  private _transferGroupId?: string;
   private _amount: Money;
   private _type: TransactionType;
   private _description: string;
@@ -43,6 +47,8 @@ export class Transaction extends BaseEntity {
     });
     this._userId = props.userId;
     this._categoryId = props.categoryId;
+    this._accountId = props.accountId;
+    this._transferGroupId = props.transferGroupId;
     this._amount = props.amount;
     this._type = props.type;
     this._description = props.description;
@@ -61,6 +67,14 @@ export class Transaction extends BaseEntity {
 
   get categoryId(): string {
     return this._categoryId;
+  }
+
+  get accountId(): string {
+    return this._accountId;
+  }
+
+  get transferGroupId(): string | undefined {
+    return this._transferGroupId;
   }
 
   get amount(): Money {
@@ -116,14 +130,17 @@ export class Transaction extends BaseEntity {
     description: string,
     amount: Money,
     categoryId: string,
+    accountId: string,
     date: TransactionDate,
   ): void {
     this.validateCategoryId(categoryId);
+    this.validateAccountId(accountId);
     this.validateDescription(description);
 
     this._description = description;
     this._amount = amount;
     this._categoryId = categoryId;
+    this._accountId = accountId;
     this._date = date;
     this.updateTimestamp();
   }
@@ -131,6 +148,12 @@ export class Transaction extends BaseEntity {
   private validateCategoryId(categoryId: string): void {
     if (!categoryId || categoryId.trim().length === 0) {
       throw new Error('Category ID cannot be empty');
+    }
+  }
+
+  private validateAccountId(accountId: string): void {
+    if (!accountId || accountId.trim().length === 0) {
+      throw new Error('Account ID cannot be empty');
     }
   }
 
@@ -147,6 +170,7 @@ export class Transaction extends BaseEntity {
   static create(
     userId: string,
     categoryId: string,
+    accountId: string,
     amount: number,
     type: TransactionType,
     description: string,
@@ -154,6 +178,7 @@ export class Transaction extends BaseEntity {
     source: InputSource = InputSource.MANUAL,
     rawInput?: string,
     aiConfidence?: number,
+    transferGroupId?: string,
   ): Transaction {
     // Validations
     if (!userId || userId.trim().length === 0) {
@@ -161,6 +186,9 @@ export class Transaction extends BaseEntity {
     }
     if (!categoryId || categoryId.trim().length === 0) {
       throw new Error('Category ID cannot be empty');
+    }
+    if (!accountId || accountId.trim().length === 0) {
+      throw new Error('Account ID cannot be empty');
     }
     if (!description || description.trim().length === 0) {
       throw new Error('Description cannot be empty');
@@ -173,6 +201,7 @@ export class Transaction extends BaseEntity {
       id: crypto.randomUUID(),
       userId,
       categoryId,
+      accountId,
       amount: new Money(amount),
       type,
       description: description.trim(),
@@ -180,6 +209,7 @@ export class Transaction extends BaseEntity {
       source,
       rawInput,
       aiConfidence,
+      transferGroupId,
     });
   }
 
@@ -189,6 +219,7 @@ export class Transaction extends BaseEntity {
       id: this.id,
       userId: this._userId,
       categoryId: this._categoryId,
+      accountId: this._accountId,
       amount: this._amount.getValue(),
       type: this._type,
       description: this._description,
@@ -196,6 +227,7 @@ export class Transaction extends BaseEntity {
       source: this._source,
       rawInput: this._rawInput,
       aiConfidence: this._aiConfidence,
+      transferGroupId: this._transferGroupId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
@@ -205,6 +237,7 @@ export class Transaction extends BaseEntity {
     id: string;
     userId: string;
     categoryId: string;
+    accountId: string | null;
     amount: Decimal;
     type: TransactionType;
     description: string;
@@ -212,6 +245,7 @@ export class Transaction extends BaseEntity {
     source: InputSource;
     rawInput: string | null;
     aiConfidence: number | null;
+    transferGroupId?: string | null;
     isLoan?: boolean;
     loanId?: string | null;
     createdAt: Date;
@@ -221,6 +255,7 @@ export class Transaction extends BaseEntity {
       id: data.id,
       userId: data.userId,
       categoryId: data.categoryId,
+      accountId: data.accountId || "MIGRATION_REQUIRED", // fallback if null data during migration.
       amount: new Money(data.amount),
       type: data.type,
       description: data.description,
@@ -228,6 +263,7 @@ export class Transaction extends BaseEntity {
       source: data.source,
       rawInput: data.rawInput ?? undefined,
       aiConfidence: data.aiConfidence ?? undefined,
+      transferGroupId: data.transferGroupId ?? undefined,
       isLoan: data.isLoan ?? false,
       loanId: data.loanId ?? undefined,
       createdAt: data.createdAt,

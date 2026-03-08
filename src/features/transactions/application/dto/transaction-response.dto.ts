@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TransactionType } from '../../domain/enums/transaction-type.enum';
 import { InputSource } from '../../domain/enums/input-source.enum';
 
@@ -20,6 +20,12 @@ export class TransactionResponseDto {
     example: '550e8400-e29b-41d4-a716-446655440002',
   })
   categoryId: string;
+
+  @ApiProperty({
+    description: 'Account UUID associated with the transaction',
+    example: '660e8400-e29b-41d4-a716-446655440001',
+  })
+  accountId: string;
 
   @ApiProperty({
     description: 'Transaction amount',
@@ -67,6 +73,12 @@ export class TransactionResponseDto {
   })
   aiConfidence?: number;
 
+  @ApiPropertyOptional({
+    description: 'Transfer group ID if the transaction is part of a transfer',
+    example: 'transfer-770e8400-e29b',
+  })
+  transferGroupId?: string;
+
   @ApiProperty({
     description: 'Transaction creation timestamp',
     example: '2024-01-15T10:30:00.000Z',
@@ -83,6 +95,7 @@ export class TransactionResponseDto {
     id: string;
     userId: string;
     categoryId: string;
+    accountId: string;
     amount: number;
     type: TransactionType;
     description: string;
@@ -90,12 +103,14 @@ export class TransactionResponseDto {
     source: InputSource;
     rawInput?: string;
     aiConfidence?: number;
+    transferGroupId?: string;
     createdAt: Date;
     updatedAt: Date;
   }) {
     this.id = data.id;
     this.userId = data.userId;
     this.categoryId = data.categoryId;
+    this.accountId = data.accountId;
     this.amount = data.amount;
     this.type = data.type;
     this.description = data.description;
@@ -103,6 +118,7 @@ export class TransactionResponseDto {
     this.source = data.source;
     this.rawInput = data.rawInput;
     this.aiConfidence = data.aiConfidence;
+    this.transferGroupId = data.transferGroupId;
     this.createdAt = data.createdAt;
     this.updatedAt = data.updatedAt;
   }
@@ -111,6 +127,7 @@ export class TransactionResponseDto {
     id: string;
     userId: string;
     categoryId: string;
+    accountId: string;
     amount: { toNumber: () => number };
     type: TransactionType;
     description: string;
@@ -118,6 +135,7 @@ export class TransactionResponseDto {
     source: InputSource;
     rawInput?: string;
     aiConfidence?: number;
+    transferGroupId?: string;
     createdAt: Date;
     updatedAt: Date;
   }): TransactionResponseDto {
@@ -125,6 +143,7 @@ export class TransactionResponseDto {
       id: transaction.id,
       userId: transaction.userId,
       categoryId: transaction.categoryId,
+      accountId: transaction.accountId,
       amount: transaction.amount.toNumber(),
       type: transaction.type,
       description: transaction.description,
@@ -132,6 +151,7 @@ export class TransactionResponseDto {
       source: transaction.source,
       rawInput: transaction.rawInput,
       aiConfidence: transaction.aiConfidence,
+      transferGroupId: transaction.transferGroupId,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
     });

@@ -9,7 +9,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { TransactionType } from '../../domain/enums/transaction-type.enum';
 
 export class CreateTransactionDto {
@@ -20,6 +20,19 @@ export class CreateTransactionDto {
   @IsNotEmpty()
   @IsUUID()
   categoryId: string;
+
+  @ApiProperty({
+    description: 'Account UUID for the transaction',
+    example: '660e8400-e29b-41d4-a716-446655440001',
+  })
+  @IsNotEmpty()
+  @IsUUID()
+  accountId: string;
+
+  @ApiPropertyOptional({
+    description: 'Transfer Group ID for internal transfers',
+  })
+  transferGroupId?: string;
 
   @ApiProperty({
     description: 'Transaction amount (must be greater than 0)',
