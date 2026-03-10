@@ -14,7 +14,7 @@ export class AccountPrismaRepository implements IAccountRepository {
     return Account.fromPersistence({
       ...prismaAccount,
       type: prismaAccount.type as unknown as AccountType,
-      snapshotBalance: Number(prismaAccount.snapshotBalance),
+      snapshotBalance: Number(prismaAccount.snapshotBalance) || 0,
       creditLimit: prismaAccount.creditLimit ? Number(prismaAccount.creditLimit) : null,
       balance: prismaAccount.balance !== undefined ? prismaAccount.balance : undefined,
     });
@@ -41,7 +41,7 @@ export class AccountPrismaRepository implements IAccountRepository {
       data: {
         ...data,
         type: data.type as unknown as PrismaAccountType,
-        snapshotBalance: new Decimal(data.snapshotBalance),
+        snapshotBalance: new Decimal(data.snapshotBalance || 0),
         creditLimit: data.creditLimit ? new Decimal(data.creditLimit) : null,
       },
     });
@@ -57,7 +57,7 @@ export class AccountPrismaRepository implements IAccountRepository {
       data: {
         ...updateData,
         type: updateData.type as unknown as PrismaAccountType,
-        snapshotBalance: new Decimal(updateData.snapshotBalance),
+        snapshotBalance: new Decimal(updateData.snapshotBalance || 0),
         creditLimit: updateData.creditLimit ? new Decimal(updateData.creditLimit) : null,
       },
     });
@@ -90,10 +90,10 @@ export class AccountPrismaRepository implements IAccountRepository {
       select: { amount: true, type: true },
     });
 
-    let balance = Number(account.snapshotBalance);
+    let balance = Number(account.snapshotBalance) || 0;
 
     for (const tx of transactions) {
-      const amount = Number(tx.amount);
+      const amount = Number(tx.amount) || 0;
       if (account.type === PrismaAccountType.CREDIT_CARD) {
         if (tx.type === TransactionType.EXPENSE) balance += amount;
         else balance -= amount;
