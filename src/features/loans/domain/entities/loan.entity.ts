@@ -174,4 +174,27 @@ export class Loan extends BaseEntity {
       updatedAt: data.updatedAt,
     });
   }
+
+  // Used by JSON.stringify (and thus NestJS serialization)
+  toJSON() {
+    return {
+      id: this.id,
+      userId: this._userId,
+      name: this._name,
+      initialAmount: this._initialAmount,
+      paidAmount: this._paidAmount,
+      pendingAmount: this._pendingAmount,
+      interestRate: this._interestRate,
+      type: this._type,
+      status: this._status,
+      startDate: this._startDate,
+      categoryName: this._categoryName,
+      notes: this._notes,
+      creditorDebtor: this._creditorDebtor,
+      categoryId: this._categoryId,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+      interestAmount: this._interestAmount,
+    };
+  }
 }
