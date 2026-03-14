@@ -11,6 +11,7 @@ import { BudgetsModule } from './features/budgets/budgets.module';
 import { AnalyticsModule } from './features/analytics/analytics.module';
 import { LoansModule } from './features/loans/loans.module';
 import { AccountsModule } from './features/accounts/accounts.module';
+import { SetupWizardModule } from './features/setup-wizard/setup-wizard.module';
 import appConfig from './shared/infrastructure/config/app.config';
 import databaseConfig from './shared/infrastructure/config/database.config';
 
@@ -43,6 +44,7 @@ import databaseConfig from './shared/infrastructure/config/database.config';
     AnalyticsModule,
     LoansModule,
     AccountsModule,
+    SetupWizardModule,
   ],
   controllers: [],
   providers: [

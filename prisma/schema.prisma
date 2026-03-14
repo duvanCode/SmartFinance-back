@@ -61,6 +61,8 @@ model User {
   name      String
   googleId  String   @unique @map("google_id")
   avatar    String?
+  setupCompleted   Boolean   @default(false) @map("setup_completed")
+  setupCompletedAt DateTime? @map("setup_completed_at")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
