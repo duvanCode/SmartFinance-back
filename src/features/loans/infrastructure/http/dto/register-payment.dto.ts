@@ -1,19 +1,20 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsDateString, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsDateString, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class RegisterPaymentDto {
+    @ApiProperty({ description: 'Monto del pago', example: 500 })
     @IsNotEmpty()
     @IsNumber()
     @Min(0)
     amount: number;
 
+    @ApiProperty({ description: 'Fecha', example: '2024-03-24T00:00:00.000Z' })
     @IsNotEmpty()
     @IsDateString()
     date: string;
 
+    @ApiPropertyOptional({ description: 'Descripción', example: 'Cuota 1' })
     @IsOptional()
     @IsString()
     description?: string;
-
-    // Ideally, payments always link to the loan, but we might want to specify if it's counting differently
-    // For now, simple payment info is enough. The service will handle type (INCOME/EXPENSE) based on LoanType.
 }

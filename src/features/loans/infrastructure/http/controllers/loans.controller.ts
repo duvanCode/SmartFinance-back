@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../../auth/infrastructure/guards/jwt-auth.guard';
 import { CreateLoanDto } from '../dto/create-loan.dto';
 import { UpdateLoanDto } from '../dto/update-loan.dto';
@@ -17,6 +18,8 @@ interface RequestWithUser extends Request {
     };
 }
 
+@ApiTags('Loans')
+@ApiBearerAuth()
 @Controller('loans')
 @UseGuards(JwtAuthGuard)
 export class LoansController {
