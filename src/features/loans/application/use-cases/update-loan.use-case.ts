@@ -68,11 +68,12 @@ export class UpdateLoanUseCase
             creditorDebtor: dto.creditorDebtor,
             notes: dto.notes,
             categoryId: categoryId || undefined,
+            accountId: dto.accountId,
         });
 
         const updatedLoan = await this.loanRepository.update(loan);
 
-        if (dto.initialAmount !== undefined || dto.categoryId !== undefined || dto.startDate !== undefined || dto.name !== undefined || dto.type !== undefined) {
+        if (dto.initialAmount !== undefined || dto.categoryId !== undefined || dto.startDate !== undefined || dto.name !== undefined || dto.type !== undefined || dto.accountId !== undefined) {
              const transactionType = (dto.type || loan.type) === LoanType.RECEIVED
                         ? TransactionType.INCOME
                         : TransactionType.EXPENSE;
@@ -83,7 +84,8 @@ export class UpdateLoanUseCase
                  categoryId as string,
                  dto.startDate ? new Date(dto.startDate) : undefined,
                  dto.name ? `Préstamo: ${dto.name}` : undefined,
-                 transactionType
+                 transactionType,
+                 dto.accountId
              );
         }
 

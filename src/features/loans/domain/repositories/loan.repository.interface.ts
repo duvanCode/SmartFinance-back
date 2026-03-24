@@ -29,7 +29,8 @@ export interface ILoanRepository {
       categoryId: string, 
       date: Date | undefined, 
       description: string | undefined, 
-      type: string
+      type: string,
+      accountId?: string
   ): Promise<void>;
   deleteTransactionsByLoanId(loanId: string, userId: string): Promise<void>;
   calculateLoanDetails(userId: string, loan: Loan): Promise<Loan>;

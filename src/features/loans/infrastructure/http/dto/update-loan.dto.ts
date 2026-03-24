@@ -48,4 +48,9 @@ export class UpdateLoanDto {
     @IsOptional()
     @IsString()
     notes?: string;
+
+    @ApiPropertyOptional({ description: 'ID de la cuenta', example: 'uuid' })
+    @IsOptional()
+    @IsString()
+    accountId?: string;
 }

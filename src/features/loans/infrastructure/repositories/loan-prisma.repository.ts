@@ -169,7 +169,8 @@ export class LoanPrismaRepository implements ILoanRepository {
       categoryId: string, 
       date: Date | undefined, 
       description: string | undefined, 
-      type: string
+      type: string,
+      accountId?: string
   ): Promise<void> {
       const initialTransaction = await this.prisma.transaction.findFirst({
           where: { loanId, isLoan: true }
@@ -184,6 +185,7 @@ export class LoanPrismaRepository implements ILoanRepository {
                   date,
                   description,
                   type: type as TransactionType,
+                  accountId: accountId !== undefined ? accountId : undefined,
               }
           });
       }
