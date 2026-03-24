@@ -145,12 +145,14 @@ export class LoanPrismaRepository implements ILoanRepository {
       type: string, 
       description: string, 
       date: Date, 
-      loanId: string
+      loanId: string,
+      accountId: string
   ): Promise<void> {
         await this.prisma.transaction.create({
             data: {
                 userId,
                 categoryId,
+                accountId,
                 amount: new Decimal(amount),
                 type: type as TransactionType,
                 description,

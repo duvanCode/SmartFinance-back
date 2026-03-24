@@ -127,6 +127,7 @@ model Account {
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
+  loans        Loan[]
 
   @@index([userId])
   @@index([userId, type])
@@ -219,6 +220,8 @@ model Loan {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   category     Category?     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   categoryId   String?       @map("category_id")
+  account      Account?      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  accountId    String?       @map("account_id")
   transactions Transaction[]
 
   @@unique([userId, categoryId])

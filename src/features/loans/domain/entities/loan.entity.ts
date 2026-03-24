@@ -17,6 +17,7 @@ export interface LoanProps {
   notes?: string | null;
   creditorDebtor?: string | null;
   categoryId?: string | null;
+  accountId?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
   
@@ -38,6 +39,7 @@ export class Loan extends BaseEntity {
   private _notes: string | null;
   private _creditorDebtor: string | null;
   private _categoryId: string | null;
+  private _accountId: string | null;
   private _interestAmount: number;
 
   constructor(props: LoanProps) {
@@ -59,6 +61,7 @@ export class Loan extends BaseEntity {
     this._notes = props.notes ?? null;
     this._creditorDebtor = props.creditorDebtor ?? null;
     this._categoryId = props.categoryId ?? null;
+    this._accountId = props.accountId ?? null;
     this._interestAmount = props.interestAmount ?? 0;
   }
 
@@ -76,6 +79,7 @@ export class Loan extends BaseEntity {
   get notes(): string | null { return this._notes; }
   get creditorDebtor(): string | null { return this._creditorDebtor; }
   get categoryId(): string | null { return this._categoryId; }
+  get accountId(): string | null { return this._accountId; }
   get interestAmount(): number { return this._interestAmount; }
 
   // Modifiers
@@ -89,6 +93,7 @@ export class Loan extends BaseEntity {
     if (props.creditorDebtor !== undefined) this._creditorDebtor = props.creditorDebtor ?? null;
     if (props.notes !== undefined) this._notes = props.notes ?? null;
     if (props.categoryId !== undefined) this._categoryId = props.categoryId ?? null;
+    if (props.accountId !== undefined) this._accountId = props.accountId ?? null;
 
     this.updateTimestamp();
   }
@@ -132,6 +137,7 @@ export class Loan extends BaseEntity {
       notes: this._notes,
       creditorDebtor: this._creditorDebtor,
       categoryId: this._categoryId,
+      accountId: this._accountId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };
@@ -152,6 +158,7 @@ export class Loan extends BaseEntity {
     notes: string | null;
     creditorDebtor: string | null;
     categoryId: string | null;
+    accountId: string | null;
     createdAt: Date;
     updatedAt: Date;
   }): Loan {
@@ -170,6 +177,7 @@ export class Loan extends BaseEntity {
       notes: data.notes,
       creditorDebtor: data.creditorDebtor,
       categoryId: data.categoryId,
+      accountId: data.accountId,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     });
@@ -192,6 +200,7 @@ export class Loan extends BaseEntity {
       notes: this._notes,
       creditorDebtor: this._creditorDebtor,
       categoryId: this._categoryId,
+      accountId: this._accountId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       interestAmount: this._interestAmount,

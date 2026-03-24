@@ -62,7 +62,8 @@ export class CreateLoanUseCase
             transactionType,
             `Préstamo: ${dto.name}`,
             new Date(dto.startDate),
-            createdLoan.id
+            createdLoan.id,
+            dto.accountId
         );
 
         return createdLoan;

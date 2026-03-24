@@ -20,7 +20,8 @@ export interface ILoanRepository {
       type: string, 
       description: string, 
       date: Date, 
-      loanId: string
+      loanId: string,
+      accountId: string
   ): Promise<void>;
   updateInitialDisbursementTransaction(
       loanId: string, 

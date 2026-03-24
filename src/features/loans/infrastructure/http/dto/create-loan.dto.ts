@@ -38,4 +38,8 @@ export class CreateLoanDto {
     @IsOptional()
     @IsString()
     notes?: string;
+
+    @IsNotEmpty()
+    @IsString()
+    accountId: string;
 }
