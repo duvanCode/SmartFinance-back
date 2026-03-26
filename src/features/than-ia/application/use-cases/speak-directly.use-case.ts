@@ -40,7 +40,7 @@ export class SpeakDirectlyUseCase {
         this.transport.sendAudioChunk(sessionId, chunk);
       }
     } catch (err) {
-      this.logger.error('Direct TTS error', err);
+      this.logger.error(`Direct TTS error: ${err instanceof Error ? err.message : String(err)}`);
     }
 
     this.transport.sendTurnEnd(sessionId);
