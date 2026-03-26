@@ -20,7 +20,6 @@ import { GetSetupStatusUseCase } from '../../application/use-cases/get-setup-sta
 import { CompleteSetupUseCase } from '../../application/use-cases/complete-setup.use-case';
 import { CompleteSetupDto } from '../../application/dto/complete-setup.dto';
 import { SetupStatusDto } from '../../application/dto/setup-status.dto';
-import { AudioAssistantService } from '../../application/services/audio-assistant.service';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string; name: string };
@@ -34,7 +33,6 @@ export class SetupWizardController {
   constructor(
     private readonly getSetupStatusUseCase: GetSetupStatusUseCase,
     private readonly completeSetupUseCase: CompleteSetupUseCase,
-    private readonly audioAssistantService: AudioAssistantService,
   ) {}
 
   @Get('status')
@@ -48,14 +46,11 @@ export class SetupWizardController {
   @ApiOperation({ summary: 'Get assistant voice text for a specific wizard step' })
   @ApiResponse({ status: 200, description: 'Text for the assistant to speak' })
   async getAssistantText(
-    @Request() req: RequestWithUser,
-    @Query('step') step: string = '1',
+    @Request() _req: RequestWithUser,
+    @Query('step') _step: string = '1',
   ): Promise<{ text: string }> {
-    const stepNum = parseInt(step) || 1;
-    // Use the name stored in the JWT payload (which comes from Google/DB)
-    const userName = req.user.name.split(' ')[0];
-    const text = await this.audioAssistantService.getAssistantText(req.user.userId, userName, stepNum);
-    return { text };
+    // Deprecated: assistant interactions are now handled by than-IA (/than-ia WS)
+    return { text: '' };
   }
 
   @Post('complete')

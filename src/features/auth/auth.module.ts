@@ -69,6 +69,6 @@ import { CategoriesModule } from '@features/categories/categories.module';
     // Strategies
     JwtStrategy,
   ],
-  exports: [ValidateTokenUseCase, USER_REPOSITORY],
+  exports: [ValidateTokenUseCase, USER_REPOSITORY,JwtModule],
 })
 export class AuthModule { }

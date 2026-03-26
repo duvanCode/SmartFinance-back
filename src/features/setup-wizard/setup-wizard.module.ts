@@ -6,7 +6,9 @@ import { WIZARD_REPOSITORY } from './domain/repositories/wizard-repository.inter
 import { GetSetupStatusUseCase } from './application/use-cases/get-setup-status.use-case';
 import { CompleteSetupUseCase } from './application/use-cases/complete-setup.use-case';
 import { SetupWizardController } from './infrastructure/controllers/setup-wizard.controller';
-import { AudioAssistantService } from './application/services/audio-assistant.service';
+
+// NOTE: WizardGateway and WizardAiProxyService have been removed.
+// The assistant for the wizard is now handled by than-ia module (ThanIaGateway on /than-ia).
 
 @Module({
   imports: [PrismaModule, CacheModule.register()],
@@ -18,7 +20,10 @@ import { AudioAssistantService } from './application/services/audio-assistant.se
     },
     GetSetupStatusUseCase,
     CompleteSetupUseCase,
-    AudioAssistantService,
+  ],
+  exports: [
+    CompleteSetupUseCase,
+    WIZARD_REPOSITORY,
   ],
 })
 export class SetupWizardModule {}

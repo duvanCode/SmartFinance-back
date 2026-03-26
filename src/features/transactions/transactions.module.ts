@@ -74,6 +74,6 @@ import { GetTotalBalanceUseCase } from './application/use-cases/get-total-balanc
       useClass: GroqWhisperAdapter,
     },
   ],
-  exports: [TRANSACTION_REPOSITORY],
+  exports: [TRANSACTION_REPOSITORY, CreateTransactionUseCase],
 })
 export class TransactionsModule { }
