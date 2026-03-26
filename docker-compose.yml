@@ -26,6 +26,9 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GROQ_MODEL=${GROQ_MODEL:-llama-3.1-8b-instant}
+      - GROQ_WHISPER_MODEL=${GROQ_WHISPER_MODEL:-whisper-large-v3-turbo}
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - DEEPGRAM_VOICE=${DEEPGRAM_VOICE:-aura-2-celeste-es}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3001}
       - THROTTLE_TTL=${THROTTLE_TTL:-60000}
       - THROTTLE_LIMIT=${THROTTLE_LIMIT:-100}
@@ -95,6 +98,9 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GROQ_MODEL=${GROQ_MODEL:-llama-3.1-8b-instant}
+      - GROQ_WHISPER_MODEL=${GROQ_WHISPER_MODEL:-whisper-large-v3-turbo}
+      - DEEPGRAM_API_KEY=${DEEPGRAM_API_KEY}
+      - DEEPGRAM_VOICE=${DEEPGRAM_VOICE:-aura-2-celeste-es}
     volumes:
       - .:/app
       - /app/node_modules
