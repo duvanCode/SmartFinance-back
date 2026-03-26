@@ -49,7 +49,7 @@ RUN npm install --omit=dev --legacy-peer-deps && npm cache clean --force
 COPY prisma ./prisma/
 
 # Generate Prisma client for production
-RUN npx prisma generate
+RUN ./node_modules/.bin/prisma generate
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
