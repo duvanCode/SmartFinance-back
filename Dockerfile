@@ -11,18 +11,18 @@ RUN apk add --no-cache openssl libc6-compat
 # Copy package files first for better layer caching
 COPY package*.json ./
 
-# Install all dependencies (including dev)
-RUN npm install --omit=dev --legacy-peer-deps && npm cache clean --force
+# Install ALL dependencies (including dev) — needed for nest build
+RUN npm install --legacy-peer-deps && npm cache clean --force
 
 # Copy prisma schema and generate client
 COPY prisma ./prisma/
-RUN npx prisma generate
+RUN ./node_modules/.bin/prisma generate
 
 # Copy source code
 COPY . .
 
 # Build application
-RUN npm run build
+RUN ./node_modules/.bin/nest build
 
 # ===========================================
 # Production stage
@@ -44,12 +44,11 @@ COPY package*.json ./
 # Install production dependencies only
 RUN npm install --omit=dev --legacy-peer-deps && npm cache clean --force
 
-
 # Copy prisma schema and migrations
 COPY prisma ./prisma/
 
 # Generate Prisma client for production
-RUN npx prisma generate
+RUN ./node_modules/.bin/prisma generate
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
