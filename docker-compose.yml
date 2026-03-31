@@ -12,7 +12,7 @@ services:
     container_name: smartfinance-api
     restart: unless-stopped
     # ports: # Commented out - Traefik handles external traffic
-    #   - "${PORT:-3000}:3000"
+      - "${PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
       - PORT=${PORT:-3000}
