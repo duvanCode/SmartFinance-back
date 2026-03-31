@@ -83,7 +83,6 @@ export class ProcessTextInputUseCase {
     try {
       for await (const delta of this.llm.streamCompletion(messages, LLM_CONFIG)) {
         fullContent += delta;
-        this.transport.sendTextChunk(sessionId, delta);
       }
     } catch (err) {
       this.logger.error('LLM stream error', err);
@@ -110,6 +109,10 @@ export class ProcessTextInputUseCase {
     }
 
     const speechText = parsed.speech ?? parsed.chatText ?? fullContent;
+    const terminalChatText = parsed.chatText ?? speechText;
+
+    // Send the clean chat text to the frontend (triggers typewriter effect)
+    this.transport.sendTextChunk(sessionId, terminalChatText);
 
     // Execute action if present
     if (parsed.action?.type) {

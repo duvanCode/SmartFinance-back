@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ISTTRepository, STT_REPOSITORY } from '../../domain/repositories/stt.repository.interface';
 import { ProcessTextInputUseCase } from './process-text-input.use-case';
 import { PageContextDto } from '../dtos/page-context.dto';
+import { IVoiceTransportRepository, VOICE_TRANSPORT_REPOSITORY } from '../../domain/repositories/voice-transport.repository.interface';
 
 @Injectable()
 export class ProcessAudioInputUseCase {
@@ -12,6 +13,7 @@ export class ProcessAudioInputUseCase {
 
   constructor(
     @Inject(STT_REPOSITORY) private readonly stt: ISTTRepository,
+    @Inject(VOICE_TRANSPORT_REPOSITORY) private readonly transport: IVoiceTransportRepository,
     private readonly processText: ProcessTextInputUseCase,
   ) {}
 
@@ -45,12 +47,25 @@ export class ProcessAudioInputUseCase {
       return;
     }
 
-    if (!transcription.trim()) {
-      this.logger.warn('Empty transcription received');
+    const tLower = transcription.toLowerCase().trim();
+    const isHallucination = 
+        tLower === 'gracias.' || 
+        tLower === 'gracias' || 
+        tLower === 'gracias...' ||
+        tLower === 'amén.' ||
+        tLower === 'amén' ||
+        tLower === 'suscríbete al canal' ||
+        tLower === 'suscríbete.' ||
+        tLower.includes('amara.org');
+
+    if (!transcription.trim() || isHallucination) {
+      this.logger.warn(`Empty or hallucinated transcription received: "${transcription}"`);
+      this.transport.sendTurnEnd(sessionId); // return UI to idle
       return;
     }
 
     this.logger.log(`Transcription for ${sessionId}: ${transcription}`);
+    this.transport.sendTranscriptChunk(sessionId, transcription, true);
 
     await this.processText.execute(
       { text: transcription, pageContext },
