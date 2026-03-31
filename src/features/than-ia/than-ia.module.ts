@@ -20,8 +20,9 @@ import { SocketioVoiceConnector } from './infrastructure/connectors/voice-transp
 import { ActionRegistryService, AGENT_ACTION_HANDLERS } from './infrastructure/actions/registry/action-registry.service';
 
 // Action Handlers
-import { FillAccountFieldAction } from './infrastructure/actions/wizard/fill-account-field.action';
-import { SubmitWizardStepAction } from './infrastructure/actions/wizard/submit-wizard-step.action';
+import { GoNextPageAction } from './infrastructure/actions/wizard/go-next-page.action';
+import { CreateAccountAction } from './infrastructure/actions/wizard/create-account.action';
+import { UpdateAccountFieldAction } from './infrastructure/actions/wizard/update-account-field.action';
 import { CreateTransactionAction } from './infrastructure/actions/transactions/create-transaction.action';
 
 // Application Layer
@@ -76,17 +77,19 @@ import { CategoriesModule } from '@features/categories/categories.module';
     },
 
     // ─── Action Handlers ─────────────────────────────────────────────────────
-    FillAccountFieldAction,
-    SubmitWizardStepAction,
+    GoNextPageAction,
+    CreateAccountAction,
+    UpdateAccountFieldAction,
     CreateTransactionAction,
     {
       provide: AGENT_ACTION_HANDLERS,
       useFactory: (
-        fill: FillAccountFieldAction,
-        submit: SubmitWizardStepAction,
-        create: CreateTransactionAction,
-      ) => [fill, submit, create],
-      inject: [FillAccountFieldAction, SubmitWizardStepAction, CreateTransactionAction],
+        goNext: GoNextPageAction,
+        createAcc: CreateAccountAction,
+        updateField: UpdateAccountFieldAction,
+        createTx: CreateTransactionAction,
+      ) => [goNext, createAcc, updateField, createTx],
+      inject: [GoNextPageAction, CreateAccountAction, UpdateAccountFieldAction, CreateTransactionAction],
     },
 
     // ─── Application Services & Use Cases ────────────────────────────────────
