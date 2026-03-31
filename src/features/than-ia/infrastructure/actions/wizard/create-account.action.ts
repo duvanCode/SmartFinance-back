@@ -13,9 +13,10 @@ import {
     cuentas: [
       {
         nombre: 'string (ej: Cuenta nómina)',
-        tipo: 'string (ej: corriente, ahorro, inversión)',
+        tipo: "string EXACTAMENTE UNO DE: 'CASH', 'BANK_ACCOUNT', 'DIGITAL_WALLET', 'CREDIT_CARD'",
         saldo_inicial: 'number',
-        banco: 'string (opcional)'
+        banco: 'string (opcional)',
+        cupo: 'number (opcional)'
       }
     ]
   },

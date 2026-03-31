@@ -23,6 +23,7 @@ import { ActionRegistryService, AGENT_ACTION_HANDLERS } from './infrastructure/a
 import { GoNextPageAction } from './infrastructure/actions/wizard/go-next-page.action';
 import { CreateAccountAction } from './infrastructure/actions/wizard/create-account.action';
 import { UpdateAccountFieldAction } from './infrastructure/actions/wizard/update-account-field.action';
+import { DeleteAccountAction } from './infrastructure/actions/wizard/delete-account.action';
 import { CreateTransactionAction } from './infrastructure/actions/transactions/create-transaction.action';
 
 // Application Layer
@@ -80,6 +81,7 @@ import { CategoriesModule } from '@features/categories/categories.module';
     GoNextPageAction,
     CreateAccountAction,
     UpdateAccountFieldAction,
+    DeleteAccountAction,
     CreateTransactionAction,
     {
       provide: AGENT_ACTION_HANDLERS,
@@ -87,9 +89,10 @@ import { CategoriesModule } from '@features/categories/categories.module';
         goNext: GoNextPageAction,
         createAcc: CreateAccountAction,
         updateField: UpdateAccountFieldAction,
+        deleteAcc: DeleteAccountAction,
         createTx: CreateTransactionAction,
-      ) => [goNext, createAcc, updateField, createTx],
-      inject: [GoNextPageAction, CreateAccountAction, UpdateAccountFieldAction, CreateTransactionAction],
+      ) => [goNext, createAcc, updateField, deleteAcc, createTx],
+      inject: [GoNextPageAction, CreateAccountAction, UpdateAccountFieldAction, DeleteAccountAction, CreateTransactionAction],
     },
 
     // ─── Application Services & Use Cases ────────────────────────────────────

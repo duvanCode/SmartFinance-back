@@ -11,7 +11,7 @@ import {
   description: 'Modifica el valor de un campo en una cuenta del formulario ya existente',
   schema: {
     cuenta_index: 'number',
-    campo: 'string (nombre, tipo, saldo_inicial, banco)',
+    campo: 'string (nombre, tipo, saldo_inicial, banco, cupo)',
     valor: 'string | number',
   },
 })
