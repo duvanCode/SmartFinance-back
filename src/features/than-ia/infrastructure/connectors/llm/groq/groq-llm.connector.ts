@@ -33,6 +33,7 @@ export class GroqLLMConnector implements ILLMRepository {
       temperature: cfg.temperature ?? 0.6,
       max_tokens: cfg.maxTokens ?? 1024,
       stream: true,
+      response_format: { type: 'json_object' },
     });
 
     for await (const chunk of stream) {

@@ -15,9 +15,17 @@ import {
 })
 export class DeleteAccountAction implements AgentActionHandler {
   async handle(payload: Record<string, any>) {
+    let index = payload.cuenta_index ?? payload.index ?? payload.cuenta ?? 0;
+    if (typeof index === 'string' && !isNaN(parseInt(index, 10))) {
+      index = parseInt(index, 10);
+    }
+    if (typeof index !== 'number' || isNaN(index)) {
+      index = 0;
+    }
+
     return {
       success: true,
-      jsCode: `window.delete_account(${payload.cuenta_index})`,
+      jsCode: `window.delete_account(${index})`,
     };
   }
 }

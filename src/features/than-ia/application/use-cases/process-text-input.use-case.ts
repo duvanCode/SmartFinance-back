@@ -99,17 +99,25 @@ export class ProcessTextInputUseCase {
     // Parse the full JSON response
     let parsed: { speech?: string; chatText?: string; action?: { type: string; payload: Record<string, unknown>; jsCode?: string } } = {};
     try {
-      const jsonMatch = fullContent.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsed = JSON.parse(jsonMatch[0]);
-      }
+      parsed = JSON.parse(fullContent);
     } catch (err) {
-      this.logger.warn('Failed to parse LLM JSON response, treating as plain text');
-      parsed = { speech: fullContent, chatText: fullContent };
+      try {
+        const jsonMatch = fullContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error('No JSON match found');
+        }
+      } catch (innerErr) {
+        this.logger.warn('Failed to parse LLM JSON response, treating as plain text');
+        parsed = { speech: fullContent, chatText: fullContent };
+      }
     }
 
-    const speechText = parsed.speech ?? parsed.chatText ?? fullContent;
-    const terminalChatText = parsed.chatText ?? speechText;
+    // Never fallback to fullContent if it's JSON but missing text fields
+    const fallbackMessage = parsed.action ? 'Entendido. Ejecutando la acción...' : 'Lo siento, no pude procesar la respuesta adecuadamente.';
+    const speechText = parsed.speech || parsed.chatText || fallbackMessage;
+    const terminalChatText = parsed.chatText || parsed.speech || fallbackMessage;
 
     // Send the clean chat text to the frontend (triggers typewriter effect)
     this.transport.sendTextChunk(sessionId, terminalChatText);
@@ -117,14 +125,21 @@ export class ProcessTextInputUseCase {
     // Execute action if present
     if (parsed.action?.type) {
       try {
+        const payloadProvided = parsed.action.payload ?? {};
+        // If the LLM omitted 'payload' wrapper and put fields directly on the action object
+        const actionKeys = Object.keys(parsed.action).filter(k => k !== 'type' && k !== 'payload' && k !== 'jsCode');
+        const reconstructedPayload = Object.keys(payloadProvided).length === 0 && actionKeys.length > 0
+            ? actionKeys.reduce((acc, key) => ({ ...acc, [key]: (parsed as any).action[key] }), {})
+            : payloadProvided;
+
         const result = await this.registry.execute(
           parsed.action.type,
-          parsed.action.payload ?? {},
+          reconstructedPayload,
           userId,
         );
         this.transport.sendAction(sessionId, {
           type: parsed.action.type,
-          payload: parsed.action.payload ?? {},
+          payload: reconstructedPayload,
           jsCode: result.jsCode ?? parsed.action.jsCode,
         });
       } catch (err) {
